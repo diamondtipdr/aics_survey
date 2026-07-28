@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reporte de Diagnóstico AICS</title>
+  <style>
+    /* ── Reset & Base ── */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      color: #1a1a2e;
+      background: #ffffff;
+      line-height: 1.6;
+      padding: 40px 30px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a3a5c 0%, #2a6f97 100%);
+      color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+    }
+    .header .logo {
+      max-height: 60px;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .header .subtitle {
+      font-size: 15px;
+      opacity: 0.85;
+    }
+
+    /* ── Score Summary ── */
+    .score-summary {
+      background: #f0f6ff;
+      border: 1px solid #d6e6ff;
+      border-radius: 10px;
+      padding: 25px;
+      margin: 24px 0;
+      text-align: center;
+    }
+    .score-summary .big-score {
+      font-size: 48px;
+      font-weight: 800;
+      color: #1a3a5c;
+      line-height: 1;
+    }
+    .score-summary .big-score span {
+      font-size: 20px;
+      font-weight: 400;
+      color: #6b7a8f;
+    }
+    .score-summary .greeting {
+      font-size: 16px;
+      color: #2a6f97;
+      margin-bottom: 8px;
+    }
+
+    /* ── Radar Chart ── */
+    .chart-container {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .chart-container img {
+      max-width: 380px;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid #e0e6ed;
+    }
+
+    /* ── Pillars Grid ── */
+    .pillars-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .pillar-card {
+      flex: 1 1 45%;
+      background: #ffffff;
+      border: 1px solid #e0e6ed;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    .pillar-card .label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #2a6f97;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .pillar-card .score {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a3a5c;
+    }
+    .pillar-card .score span {
+      font-size: 14px;
+      font-weight: 400;
+      color: #6b7a8f;
+    }
+    .pillar-bar {
+      height: 6px;
+      background: #e8ecf1;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    .pillar-bar .fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #2a6f97, #4a9fd4);
+    }
+
+    /* ── AI Report ── */
+    .report-section {
+      margin: 28px 0;
+    }
+    .report-section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a3a5c;
+      border-bottom: 2px solid #2a6f97;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .report-content {
+      font-size: 14px;
+      color: #2c3e50;
+      line-height: 1.8;
+      text-align: justify;
+    }
+    .report-content p {
+      margin-bottom: 12px;
+    }
+
+    /* ── CTA / Footer ── */
+    .cta-section {
+      background: linear-gradient(135deg, #eef6ff, #dcefff);
+      border: 1px solid #cce5ff;
+      border-radius: 10px;
+      padding: 24px;
+      margin: 28px 0;
+      text-align: center;
+    }
+    .cta-section h3 {
+      font-size: 17px;
+      color: #1a3a5c;
+      margin-bottom: 8px;
+    }
+    .cta-section p {
+      font-size: 14px;
+      color: #4a5a6e;
+      margin-bottom: 14px;
+    }
+    .cta-section a {
+      display: inline-block;
+      background: linear-gradient(135deg, #2a6f97, #1a3a5c);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #9aa8b9;
+      border-top: 1px solid #e8ecf1;
+      padding-top: 16px;
+      margin-top: 28px;
+    }
+
+    @page {
+      margin: 20mm 15mm;
+    }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- HEADER                                  -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="header">
+    <img class="logo" src="{{LOGO_SRC}}" alt="AICS Logo" onerror="this.style.display='none'" />
+    <h1>Reporte de Diagnóstico</h1>
+    <p class="subtitle">Autoevaluación de Madurez en Auditoría</p>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- SCORE SUMMARY                           -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="score-summary">
+    <p class="greeting">{{NAME}}</p>
+    <div class="big-score">{{TOTAL_SCORE}} <span>/ {{MAX_SCORE}}</span></div>
+    <p style="margin-top:6px;font-size:14px;color:#6b7a8f;">Puntuación General</p>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- RADAR CHART                             -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="chart-container">
+    <img src="{{RADAR_CHART_SRC}}" alt="Gráfico radar de resultados por pilar" />
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- PILLARS GRID                            -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="pillars-grid">
+    <div class="pillar-card">
+      <div class="label">{{P1_LABEL}}</div>
+      <div class="score">{{P1_SCORE}} <span>/ 16</span></div>
+      <div class="pillar-bar"><div class="fill" style="width:{{P1_PERCENT}}%"></div></div>
+    </div>
+    <div class="pillar-card">
+      <div class="label">{{P2_LABEL}}</div>
+      <div class="score">{{P2_SCORE}} <span>/ 16</span></div>
+      <div class="pillar-bar"><div class="fill" style="width:{{P2_PERCENT}}%"></div></div>
+    </div>
+    <div class="pillar-card">
+      <div class="label">{{P3_LABEL}}</div>
+      <div class="score">{{P3_SCORE}} <span>/ 16</span></div>
+      <div class="pillar-bar"><div class="fill" style="width:{{P3_PERCENT}}%"></div></div>
+    </div>
+    <div class="pillar-card">
+      <div class="label">{{P4_LABEL}}</div>
+      <div class="score">{{P4_SCORE}} <span>/ 16</span></div>
+      <div class="pillar-bar"><div class="fill" style="width:{{P4_PERCENT}}%"></div></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- AI REPORT                               -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="report-section">
+    <h2>📋 Informe Ejecutivo</h2>
+    <div class="report-content">{{AI_REPORT}}</div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- CTA                                     -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="cta-section">
+    <h3>🚀 Fundamentos de Auditoría Inteligente</h3>
+    <p>Transforme este diagnóstico en resultados concretos. Conozca nuestro curso especializado.</p>
+    <a href="https://aics-capacitacion.com/fundamentos-auditoria-inteligente" target="_blank">
+      👉 Ver curso
+    </a>
+  </div>
+
+  <div class="footer">
+    AICS Capacitación &bull; Auditoría Inteligente, Control y Supervisión
+  </div>
+
+</body>
+</html>
