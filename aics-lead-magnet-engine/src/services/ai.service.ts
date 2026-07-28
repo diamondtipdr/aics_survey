@@ -16,37 +16,34 @@ const log = withContext({ requestId: 'system', component: 'AiService' });
  * @returns The AI-generated text content
  */
 export async function generateAiReport(
-  name: string | undefined,
   industry: string | undefined,
   totalScore: number,
   pillars: { label: string; score: number }[],
   ctx: LogContext
 ): Promise<string> {
   const logger = withContext(ctx);
-  const userName = name?.trim() || 'Auditor';
   const industryStr = industry?.trim() || 'su industria';
 
   const pillarStr = pillars
-    .map((p) => `${p.label}: ${p.score}/16`)
-    .join(', ');
+    .map((p) => `Pillar ${p.label.split(' ')[0]} (${p.label}): ${p.score}/16`)
+    .join('\n');
 
   const systemPrompt =
-    'Eres un asistente experto en auditoría que redacta informes ejecutivos. Responde ÚNICAMENTE con el texto del informe, sin introducciones ni despedidas.';
+    'Eres Christian Vargas, un experto estricto y pragmático en auditoría interna. Tu tarea es exclusivamente analizar puntajes basados en la metodología AICS. NO inventes frameworks, NO proporciones enlaces externos, NO uses jerga corporativa genérica. Responde estrictamente en español LATAM.';
 
-  const userPrompt = `Eres un experto en auditoría. El usuario ${userName} de la industria ${industryStr} obtuvo ${totalScore}/64 puntos. Puntajes por pilar: ${pillarStr}.
+  const userPrompt = `El usuario de la industria ${industryStr} obtuvo ${totalScore}/64 puntos.
+Puntajes por pilar (Máximo 16 cada uno):
+Pillar 1 (Integración Metodológica): ${pillars[0]?.score ?? 0}
+Pillar 2 (Automatización de Datos): ${pillars[1]?.score ?? 0}
+Pillar 3 (Agilidad y Ejecución): ${pillars[2]?.score ?? 0}
+Pillar 4 (Impacto y Comunicación): ${pillars[3]?.score ?? 0}
 
-Escribe un informe ejecutivo de exactamente 3 párrafos:
-1) Diagnóstico general del nivel de madurez en auditoría.
-2) El pilar más débil y el riesgo estratégico que representa.
-3) Una "Quick Win" accionable y concreta que pueda implementar de inmediato.
+Escribe un informe estricto de exactamente 3 párrafos.
+Párrafo 1: Evaluación directa de su nivel de madurez general basado en el puntaje total.
+Párrafo 2: Identifica el pilar con menor puntaje específico. Explica el riesgo operativo de fallar en este pilar específico (sé altamente específico en auditoría).
+Párrafo 3: Da exactamente UN consejo accionable y pragmático (Quick Win) para mejorar ese pilar más débil.
 
-REGLAS:
-- Tono pragmático y profesional.
-- Redacta en español LATAM.
-- Trata al usuario de "usted".
-- NO saludes ni te despidas.
-- No incluyas títulos ni marcadores.
-- Solo los 3 párrafos, sin texto adicional.`;
+REGLAS: Usa 'usted', sé directo, sin saludos, sin markdown, solo texto plano separado por saltos de línea. NO INCLUYAS NINGÚN ENLACE O URL.`;
 
   logger.info('Calling AI provider', {
     model: config.openaiModel,
@@ -63,7 +60,7 @@ REGLAS:
           { role: 'user', content: userPrompt },
         ],
         max_tokens: 1024,
-        temperature: 0.7,
+        temperature: 0.2,
       },
       {
         headers: {

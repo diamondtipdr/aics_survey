@@ -47,10 +47,10 @@ export function validatePayload(
 
 /** PILLAR DEFINITIONS — 4 questions per pillar (16 total) */
 const PILLAR_MAP = [
-  { pillarId: 1, questions: [1, 2, 3, 4], label: 'Gobernanza y Liderazgo' },
-  { pillarId: 2, questions: [5, 6, 7, 8], label: 'Gestión de Riesgos' },
-  { pillarId: 3, questions: [9, 10, 11, 12], label: 'Control Interno' },
-  { pillarId: 4, questions: [13, 14, 15, 16], label: 'Tecnología y Datos' },
+  { pillarId: 1, questions: [1, 2, 3, 4], label: 'Integración Metodológica' },
+  { pillarId: 2, questions: [5, 6, 7, 8], label: 'Automatización de Datos' },
+  { pillarId: 3, questions: [9, 10, 11, 12], label: 'Agilidad y Ejecución' },
+  { pillarId: 4, questions: [13, 14, 15, 16], label: 'Impacto y Comunicación' },
 ] as const;
 
 export function getPillarMap() {

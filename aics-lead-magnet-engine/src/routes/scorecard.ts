@@ -58,7 +58,6 @@ router.post('/process', async (req: Request, res: Response) => {
 
     // ── Step C: AI Analysis ──
     const aiReport = await generateAiReport(
-      name,
       industry,
       scores.totalScore,
       scores.pillars.map((p) => ({ label: p.label, score: p.score })),
@@ -78,7 +77,7 @@ router.post('/process', async (req: Request, res: Response) => {
         totalScore: scores.totalScore,
         maxScore: scores.maxScore,
         pillars: scores.pillars,
-        aiReport,
+        teaser: 'Proporcione su correo electrónico para recibir el informe completo generado por IA.',
       };
 
       res.status(200).json(response);
