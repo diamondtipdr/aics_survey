@@ -62,7 +62,7 @@ async function sendEmail(to, subject, htmlBody, pdfBuffer, pdfFilename, ctx) {
  * Build the professional Spanish email body for the report delivery.
  */
 function buildReportEmailHtml(userName) {
-    const courseUrl = 'https://aics-capacitacion.com/fundamentos-auditoria-inteligente';
+    const courseUrl = 'https://auditan.do/cursos/fundamentos';
     return `
 <!DOCTYPE html>
 <html lang="es">

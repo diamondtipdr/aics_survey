@@ -77,7 +77,7 @@ router.post('/process', async (req: Request, res: Response) => {
         totalScore: scores.totalScore,
         maxScore: scores.maxScore,
         pillars: scores.pillars,
-        teaser: 'Proporcione su correo electrónico para recibir el informe completo generado por IA.',
+        teaser: 'Ingresa tu correo para recibir de inmediato el reporte confidencial en PDF con el análisis de Inteligencia Artificial y tu plan de acción.',
       };
 
       res.status(200).json(response);

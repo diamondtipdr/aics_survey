@@ -80,7 +80,7 @@ export async function sendEmail(
  * Build the professional Spanish email body for the report delivery.
  */
 export function buildReportEmailHtml(userName: string): string {
-  const courseUrl = 'https://auditan.do/cursos/';
+  const courseUrl = 'https://auditan.do/cursos/fundamentos';
 
   return `
 <!DOCTYPE html>

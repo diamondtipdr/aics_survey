@@ -40,7 +40,7 @@ describe('POST /api/v1/scorecard/process', () => {
     expect(res.body.mode).toBe('preview');
     expect(res.body.totalScore).toBe(43);
     expect(res.body.pillars).toHaveLength(4);
-    expect(res.body.aiReport).toBe(aiReportText);
+    expect(res.body.teaser).toBeDefined();
 
     // Should NOT call DB, PDF, or Email services
     expect(mockedPdf.generatePdf).not.toHaveBeenCalled();
@@ -78,8 +78,8 @@ describe('POST /api/v1/scorecard/process', () => {
 
     // AI should have been called
     expect(mockedAi.generateAiReport).toHaveBeenCalledTimes(1);
-    const aiCallName = mockedAi.generateAiReport.mock.calls[0][0];
-    expect(aiCallName).toBeUndefined(); // original name is undefined
+    const aiCallIndustry = mockedAi.generateAiReport.mock.calls[0][0];
+    expect(aiCallIndustry).toBeDefined(); // first param is now industry
   });
 
   it('should return 400 for invalid email', async () => {

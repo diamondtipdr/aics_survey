@@ -16,6 +16,16 @@ async function generatePdf(data, ctx) {
     const logger = (0, logger_1.withContext)(ctx);
     const templatePath = path_1.default.resolve(__dirname, '../templates/report.html');
     let html = fs_1.default.readFileSync(templatePath, 'utf-8');
+    // Auto-load logo from assets folder
+    const logoPath = path_1.default.resolve(__dirname, '../templates/assets/logo.png');
+    let logoBase64 = '';
+    try {
+        const logoBuffer = fs_1.default.readFileSync(logoPath);
+        logoBase64 = logoBuffer.toString('base64');
+    }
+    catch {
+        // Logo not found — will be replaced with empty string below
+    }
     // Replace template variables
     html = html
         .replace(/\{\{NAME\}\}/g, escapeHtml(data.name))
@@ -34,9 +44,9 @@ async function generatePdf(data, ctx) {
         .replace(/\{\{P4_LABEL\}\}/g, data.pillars[3]?.label ?? '')
         .replace(/\{\{P4_PERCENT\}\}/g, calcPct(data.pillars[3]))
         .replace(/\{\{AI_REPORT\}\}/g, escapeHtml(data.aiReport).replace(/\n/g, '<br>'));
-    // Optional logo
-    if (data.logoBase64) {
-        html = html.replace(/\{\{LOGO_SRC\}\}/g, `data:image/png;base64,${data.logoBase64}`);
+    // Inject logo as base64 data URL
+    if (logoBase64) {
+        html = html.replace(/\{\{LOGO_SRC\}\}/g, `data:image/png;base64,${logoBase64}`);
     }
     else {
         html = html.replace(/\{\{LOGO_SRC\}\}/g, '');

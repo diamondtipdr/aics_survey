@@ -13,7 +13,7 @@ describe('buildReportEmailHtml', () => {
     expect(html).toContain('María García');
     expect(html).toContain('Reporte de Diagnóstico AICS');
     expect(html).toContain('Fundamentos de Auditoría Inteligente');
-    expect(html).toContain('aics-capacitacion.com');
+    expect(html).toContain('auditan.do/cursos/fundamentos');
   });
 
   it('should escape HTML in user names', () => {

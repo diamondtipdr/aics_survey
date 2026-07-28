@@ -54,19 +54,19 @@ export declare function validatePayload(body: unknown): {
 export declare function getPillarMap(): readonly [{
     readonly pillarId: 1;
     readonly questions: readonly [1, 2, 3, 4];
-    readonly label: "Gobernanza y Liderazgo";
+    readonly label: "Integración";
 }, {
     readonly pillarId: 2;
     readonly questions: readonly [5, 6, 7, 8];
-    readonly label: "Gestión de Riesgos";
+    readonly label: "Automatización";
 }, {
     readonly pillarId: 3;
     readonly questions: readonly [9, 10, 11, 12];
-    readonly label: "Control Interno";
+    readonly label: "Agilidad";
 }, {
     readonly pillarId: 4;
     readonly questions: readonly [13, 14, 15, 16];
-    readonly label: "Tecnología y Datos";
+    readonly label: "Impacto & Comunicación";
 }];
 /**
  * Calculate scores from the 16 answers.
@@ -80,7 +80,7 @@ export declare function calculateScores(answers: {
     maxScore: number;
     pillars: {
         pillarId: 1 | 4 | 2 | 3;
-        label: "Gobernanza y Liderazgo" | "Gestión de Riesgos" | "Control Interno" | "Tecnología y Datos";
+        label: "Integración" | "Automatización" | "Agilidad" | "Impacto & Comunicación";
         score: number;
         maxScore: number;
     }[];

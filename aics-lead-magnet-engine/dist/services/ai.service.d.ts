@@ -9,7 +9,7 @@ import type { LogContext } from '../types';
  * @param ctx      - Logging context
  * @returns The AI-generated text content
  */
-export declare function generateAiReport(name: string | undefined, industry: string | undefined, totalScore: number, pillars: {
+export declare function generateAiReport(industry: string | undefined, totalScore: number, pillars: {
     label: string;
     score: number;
 }[], ctx: LogContext): Promise<string>;

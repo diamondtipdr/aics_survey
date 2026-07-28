@@ -18,28 +18,28 @@ const log = (0, logger_1.withContext)({ requestId: 'system', component: 'AiServi
  * @param ctx      - Logging context
  * @returns The AI-generated text content
  */
-async function generateAiReport(name, industry, totalScore, pillars, ctx) {
+async function generateAiReport(industry, totalScore, pillars, ctx) {
     const logger = (0, logger_1.withContext)(ctx);
-    const userName = name?.trim() || 'Auditor';
     const industryStr = industry?.trim() || 'su industria';
     const pillarStr = pillars
-        .map((p) => `${p.label}: ${p.score}/16`)
-        .join(', ');
-    const systemPrompt = 'Eres un asistente experto en auditoría que redacta informes ejecutivos. Responde ÚNICAMENTE con el texto del informe, sin introducciones ni despedidas.';
-    const userPrompt = `Eres un experto en auditoría. El usuario ${userName} de la industria ${industryStr} obtuvo ${totalScore}/64 puntos. Puntajes por pilar: ${pillarStr}.
+        .map((p) => `Pillar ${p.label.split(' ')[0]} (${p.label}): ${p.score}/16`)
+        .join('\n');
+    const systemPrompt = 'Act as an elite expert in internal audit, risk, and compliance. Your tone is pragmatic, direct, and anti-dogmatic. You focus on practical results over rigid purism. Analyze scores based on the AICS methodology. Do NOT invent frameworks, do not provide external links, and do not use generic corporate jargon. Answer strictly in LATAM Spanish.';
+    const userPrompt = `The user from the ${industryStr} industry scored ${totalScore}/64 points.
+Scores by pillar (Max 16 each):
+Pillar 1 (Integración): ${pillars[0]?.score ?? 0}
+Pillar 2 (Automatización): ${pillars[1]?.score ?? 0}
+Pillar 3 (Agilidad): ${pillars[2]?.score ?? 0}
+Pillar 4 (Impacto & Comunicación): ${pillars[3]?.score ?? 0}
 
-Escribe un informe ejecutivo de exactamente 3 párrafos:
-1) Diagnóstico general del nivel de madurez en auditoría.
-2) El pilar más débil y el riesgo estratégico que representa.
-3) Una "Quick Win" accionable y concreta que pueda implementar de inmediato.
+Write a strict 5-paragraph diagnostic report.
+Paragraph 1: Direct assessment of their overall maturity level based on the total score.
+Paragraph 2: Brief diagnosis of Pillar 1 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 3: Brief diagnosis of Pillar 2 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 4: Brief diagnosis of Pillar 3 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 5: Brief diagnosis of Pillar 4 and exactly ONE highly actionable advice (Quick Win) to improve it.
 
-REGLAS:
-- Tono pragmático y profesional.
-- Redacta en español LATAM.
-- Trata al usuario de "usted".
-- NO saludes ni te despidas.
-- No incluyas títulos ni marcadores.
-- Solo los 3 párrafos, sin texto adicional.`;
+RULES: Use 'usted', be direct, no greetings, no markdown, just plain text separated by newlines. DO NOT INCLUDE ANY URLS OR LINKS.`;
     logger.info('Calling AI provider', {
         model: config_1.config.openaiModel,
         baseUrl: config_1.config.openaiApiBase,
@@ -51,8 +51,8 @@ REGLAS:
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userPrompt },
             ],
-            max_tokens: 1024,
-            temperature: 0.7,
+            max_tokens: 1500,
+            temperature: 0.2,
         }, {
             headers: {
                 'Content-Type': 'application/json',

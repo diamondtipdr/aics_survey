@@ -49,7 +49,7 @@ router.post('/process', async (req, res) => {
             pillars: scores.pillars.map((p) => ({ label: p.label, score: p.score })),
         });
         // ── Step C: AI Analysis ──
-        const aiReport = await (0, ai_service_1.generateAiReport)(name, industry, scores.totalScore, scores.pillars.map((p) => ({ label: p.label, score: p.score })), ctx);
+        const aiReport = await (0, ai_service_1.generateAiReport)(industry, scores.totalScore, scores.pillars.map((p) => ({ label: p.label, score: p.score })), ctx);
         // ── Step D: Conditional Branch ──
         // SCENARIO 1: Preview Mode (no email)
         if (!email) {
@@ -61,7 +61,7 @@ router.post('/process', async (req, res) => {
                 totalScore: scores.totalScore,
                 maxScore: scores.maxScore,
                 pillars: scores.pillars,
-                aiReport,
+                teaser: 'Ingresa tu correo para recibir de inmediato el reporte confidencial en PDF con el análisis de Inteligencia Artificial y tu plan de acción.',
             };
             res.status(200).json(response);
             return;

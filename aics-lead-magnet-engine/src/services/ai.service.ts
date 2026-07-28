@@ -29,21 +29,23 @@ export async function generateAiReport(
     .join('\n');
 
   const systemPrompt =
-    'Eres Christian Vargas, un experto estricto y pragmático en auditoría interna. Tu tarea es exclusivamente analizar puntajes basados en la metodología AICS. NO inventes frameworks, NO proporciones enlaces externos, NO uses jerga corporativa genérica. Responde estrictamente en español LATAM.';
+    'Act as an elite expert in internal audit, risk, and compliance. Your tone is pragmatic, direct, and anti-dogmatic. You focus on practical results over rigid purism. Analyze scores based on the AICS methodology. Do NOT invent frameworks, do not provide external links, and do not use generic corporate jargon. Answer strictly in LATAM Spanish.';
 
-  const userPrompt = `El usuario de la industria ${industryStr} obtuvo ${totalScore}/64 puntos.
-Puntajes por pilar (Máximo 16 cada uno):
-Pillar 1 (Integración Metodológica): ${pillars[0]?.score ?? 0}
-Pillar 2 (Automatización de Datos): ${pillars[1]?.score ?? 0}
-Pillar 3 (Agilidad y Ejecución): ${pillars[2]?.score ?? 0}
-Pillar 4 (Impacto y Comunicación): ${pillars[3]?.score ?? 0}
+  const userPrompt = `The user from the ${industryStr} industry scored ${totalScore}/64 points.
+Scores by pillar (Max 16 each):
+Pillar 1 (Integración): ${pillars[0]?.score ?? 0}
+Pillar 2 (Automatización): ${pillars[1]?.score ?? 0}
+Pillar 3 (Agilidad): ${pillars[2]?.score ?? 0}
+Pillar 4 (Impacto & Comunicación): ${pillars[3]?.score ?? 0}
 
-Escribe un informe estricto de exactamente 3 párrafos.
-Párrafo 1: Evaluación directa de su nivel de madurez general basado en el puntaje total.
-Párrafo 2: Identifica el pilar con menor puntaje específico. Explica el riesgo operativo de fallar en este pilar específico (sé altamente específico en auditoría).
-Párrafo 3: Da exactamente UN consejo accionable y pragmático (Quick Win) para mejorar ese pilar más débil.
+Write a strict 5-paragraph diagnostic report.
+Paragraph 1: Direct assessment of their overall maturity level based on the total score.
+Paragraph 2: Brief diagnosis of Pillar 1 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 3: Brief diagnosis of Pillar 2 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 4: Brief diagnosis of Pillar 3 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Paragraph 5: Brief diagnosis of Pillar 4 and exactly ONE highly actionable advice (Quick Win) to improve it.
 
-REGLAS: Usa 'usted', sé directo, sin saludos, sin markdown, solo texto plano separado por saltos de línea. NO INCLUYAS NINGÚN ENLACE O URL.`;
+RULES: Use 'usted', be direct, no greetings, no markdown, just plain text separated by newlines. DO NOT INCLUDE ANY URLS OR LINKS.`;
 
   logger.info('Calling AI provider', {
     model: config.openaiModel,
@@ -59,7 +61,7 @@ REGLAS: Usa 'usted', sé directo, sin saludos, sin markdown, solo texto plano se
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: 1024,
+        max_tokens: 1500,
         temperature: 0.2,
       },
       {

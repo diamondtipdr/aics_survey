@@ -53,7 +53,7 @@ export interface PreviewResponse {
     totalScore: number;
     maxScore: number;
     pillars: PillarScore[];
-    aiReport: string;
+    teaser: string;
 }
 /** Response shape for Full Lead Capture (with email) */
 export interface FullResponse {

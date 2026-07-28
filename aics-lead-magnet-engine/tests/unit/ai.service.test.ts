@@ -39,7 +39,6 @@ describe('generateAiReport', () => {
     });
 
     const result = await generateAiReport(
-      'Carlos Pérez',
       'Tecnología',
       43,
       pillars,
@@ -65,7 +64,6 @@ describe('generateAiReport', () => {
     });
 
     const result = await generateAiReport(
-      undefined,
       'Salud',
       32,
       pillars,
@@ -85,7 +83,7 @@ describe('generateAiReport', () => {
     });
 
     await expect(
-      generateAiReport('Test', 'Tech', 40, pillars, testCtx)
+      generateAiReport('Tech', 40, pillars, testCtx)
     ).rejects.toThrow('empty content');
   });
 
@@ -95,7 +93,7 @@ describe('generateAiReport', () => {
     });
 
     await expect(
-      generateAiReport('Test', 'Tech', 40, pillars, testCtx)
+      generateAiReport('Tech', 40, pillars, testCtx)
     ).rejects.toMatchObject({
       statusCode: 502,
     });
@@ -107,7 +105,7 @@ describe('generateAiReport', () => {
     });
 
     await expect(
-      generateAiReport('Test', 'Tech', 40, pillars, testCtx)
+      generateAiReport('Tech', 40, pillars, testCtx)
     ).rejects.toMatchObject({
       retryable: true,
     });
