@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertLeadMySql = insertLeadMySql;
 exports.appendToGoogleSheet = appendToGoogleSheet;
 exports.closeDb = closeDb;
+const fs_1 = __importDefault(require("fs"));
 const promise_1 = __importDefault(require("mysql2/promise"));
 const googleapis_1 = require("googleapis");
 const config_1 = require("../utils/config");
@@ -75,12 +76,13 @@ async function insertLeadMySql(record, ctx) {
  */
 async function appendToGoogleSheet(record, ctx) {
     const logger = (0, logger_1.withContext)(ctx);
-    if (!config_1.config.googleServiceAccountKey || !config_1.config.googleSheetId) {
+    if (!config_1.config.googleServiceAccountKeyPath || !config_1.config.googleSheetId) {
         logger.warn('Google Sheets not configured — skipping append');
         return;
     }
     try {
-        const serviceAccount = JSON.parse(config_1.config.googleServiceAccountKey);
+        const keyRaw = fs_1.default.readFileSync(config_1.config.googleServiceAccountKeyPath, 'utf-8');
+        const serviceAccount = JSON.parse(keyRaw);
         const auth = new googleapis_1.google.auth.JWT({
             email: serviceAccount.client_email,
             key: serviceAccount.private_key,

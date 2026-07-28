@@ -100,6 +100,7 @@ export interface AppConfig {
   dbName: string;
   // Google Sheets
   googleServiceAccountKey: string;
+  googleServiceAccountKeyPath: string;
   googleSheetId: string;
   // Mailgun
   mailgunApiKey: string;

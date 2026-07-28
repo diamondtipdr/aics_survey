@@ -28,7 +28,8 @@ export const config: AppConfig = {
   dbName: getEnv('DB_NAME', 'aics_leads'),
 
   // Google Sheets
-  googleServiceAccountKey: getEnv('GOOGLE_SERVICE_ACCOUNT_KEY', ''),
+  googleServiceAccountKey: '', // loaded from file at runtime
+  googleServiceAccountKeyPath: getEnv('GOOGLE_SERVICE_ACCOUNT_KEY_PATH', getEnv('GOOGLE_SERVICE_ACCOUNT_KEY', '')),
   googleSheetId: getEnv('GOOGLE_SHEET_ID', ''),
 
   // Mailgun

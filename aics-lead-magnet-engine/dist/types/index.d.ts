@@ -83,6 +83,7 @@ export interface AppConfig {
     dbPassword: string;
     dbName: string;
     googleServiceAccountKey: string;
+    googleServiceAccountKeyPath: string;
     googleSheetId: string;
     mailgunApiKey: string;
     mailgunDomain: string;

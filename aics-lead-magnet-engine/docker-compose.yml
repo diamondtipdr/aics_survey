@@ -1,4 +1,4 @@
-version: "3.8"
+name: aics-lead-magnet-engine
 
 services:
   mysql:
@@ -8,8 +8,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
       MYSQL_DATABASE: ${DB_NAME:-aics_leads}
-      MYSQL_USER: ${DB_USER:-aics_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-aics_password}
     ports:
       - "3307:3306"
     volumes:
@@ -38,10 +36,10 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
       DB_HOST: mysql
       DB_PORT: "3306"
-      DB_USER: ${DB_USER:-aics_user}
-      DB_PASSWORD: ${DB_PASSWORD:-aics_password}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-}
       DB_NAME: ${DB_NAME:-aics_leads}
-      GOOGLE_SERVICE_ACCOUNT_KEY: ${GOOGLE_SERVICE_ACCOUNT_KEY}
+      GOOGLE_SERVICE_ACCOUNT_KEY_PATH: /app/secrets/google-service-account.json
       GOOGLE_SHEET_ID: ${GOOGLE_SHEET_ID}
       MAILGUN_API_KEY: ${MAILGUN_API_KEY}
       MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
@@ -51,6 +49,7 @@ services:
       AUDIT_ENABLED: ${AUDIT_ENABLED:-true}
     volumes:
       - app_logs:/app/logs
+      - ${GOOGLE_SERVICE_ACCOUNT_KEY_PATH:-./secrets/google-service-account.json}:/app/secrets/google-service-account.json:ro
     depends_on:
       mysql:
         condition: service_healthy

@@ -1,3 +1,4 @@
+import fs from 'fs';
 import mysql from 'mysql2/promise';
 import { google } from 'googleapis';
 import { config } from '../utils/config';
@@ -85,13 +86,14 @@ export async function appendToGoogleSheet(
 ): Promise<void> {
   const logger = withContext(ctx);
 
-  if (!config.googleServiceAccountKey || !config.googleSheetId) {
+  if (!config.googleServiceAccountKeyPath || !config.googleSheetId) {
     logger.warn('Google Sheets not configured — skipping append');
     return;
   }
 
   try {
-    const serviceAccount = JSON.parse(config.googleServiceAccountKey);
+    const keyRaw = fs.readFileSync(config.googleServiceAccountKeyPath, 'utf-8');
+    const serviceAccount = JSON.parse(keyRaw);
 
     const auth = new google.auth.JWT({
       email: serviceAccount.client_email,

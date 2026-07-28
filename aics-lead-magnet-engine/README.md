@@ -123,7 +123,7 @@ npm run dev
 | `DB_USER` | Usuario MySQL | `root` |
 | `DB_PASSWORD` | Password MySQL | *(requerido)* |
 | `DB_NAME` | Base de datos | `aics_leads` |
-| `GOOGLE_SERVICE_ACCOUNT_KEY` | JSON key completo del Service Account | *(opcional)* |
+| `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` | Ruta al archivo JSON del Service Account | `./secrets/google-service-account.json` |
 | `GOOGLE_SHEET_ID` | ID del Google Sheet | *(opcional)* |
 | `MAILGUN_API_KEY` | API key de Mailgun | *(requerido para full mode)* |
 | `MAILGUN_DOMAIN` | Dominio configurado en Mailgun | *(requerido para full mode)* |
@@ -153,9 +153,10 @@ npm run test:coverage
 2. Crear proyecto o seleccionar existente
 3. Habilitar **Google Sheets API**
 4. Crear **Service Account** → descargar JSON key
-5. Copiar todo el contenido del JSON a `GOOGLE_SERVICE_ACCOUNT_KEY`
-6. Crear un Google Sheet y compartirlo con el email del Service Account (rol **Editor**)
-7. Copiar el ID de la hoja (de la URL) a `GOOGLE_SHEET_ID`
+5. Guardar el archivo JSON descargado como `./secrets/google-service-account.json`
+6. Establecer `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` en `.env` (por defecto apunta a esa ruta)
+7. Crear un Google Sheet y compartirlo con el email del Service Account (rol **Editor**)
+8. Copiar el ID de la hoja (de la URL) a `GOOGLE_SHEET_ID`
 
 **Estructura esperada de columnas:**
 | A | B | C | D | E | F | G | H | I | J |
