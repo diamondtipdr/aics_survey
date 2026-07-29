@@ -1,17 +1,82 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import scorecardRouter from './routes/scorecard';
 import moodleRouter from './routes/moodle';
 import { withContext } from './utils/logger';
+import { config } from './utils/config';
 
 const app = express();
 
-// ── Middleware ──
-app.use(helmet());
-app.use(cors());
+// ── Trust proxy (required when behind Nginx/reverse proxy) ──
+app.set('trust proxy', 1);
+
+// ── Security Middleware ──
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      imgSrc: ["'self'", 'data:', 'https://quickchart.io'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ── CORS — restrict to configured origin in production ──
+const corsOrigin = config.corsOrigin;
+app.use(cors({
+  origin: corsOrigin === '*' ? '*' : corsOrigin.split(',').map(s => s.trim()),
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Api-Key'],
+  maxAge: 86400,
+}));
+
 app.use(express.json({ limit: '100kb' }));
+
+// ── Rate Limiting ──
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: config.rateLimitMax,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Demasiadas solicitudes. Intenta de nuevo más tarde.',
+    code: 'ERR_RATE_LIMIT',
+  },
+});
+app.use(generalLimiter);
+
+// ── Moodle API Key Auth — protects all /api/v1/moodle/* routes ──
+app.use('/api/v1/moodle', (req, res, next) => {
+  const moodleApiKey = config.moodleApiKey;
+  if (!moodleApiKey) {
+    res.status(500).json({
+      success: false,
+      error: 'MOODLE_API_KEY no configurada en el servidor',
+      code: 'ERR_CONFIG',
+    });
+    return;
+  }
+  const providedKey = req.headers['x-api-key'] as string | undefined;
+  if (!providedKey || providedKey !== moodleApiKey) {
+    res.status(401).json({
+      success: false,
+      error: 'No autorizado. X-Api-Key inválida o faltante.',
+      code: 'ERR_401',
+    });
+    return;
+  }
+  next();
+});
 
 // ── Serve static files from the built SPA ──
 app.use(express.static(path.join(__dirname, '../dist/public')));

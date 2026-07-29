@@ -90,6 +90,9 @@ export type ScorecardResponse = PreviewResponse | FullResponse | ErrorResponse;
 export interface AppConfig {
   port: number;
   nodeEnv: string;
+  // Security
+  corsOrigin: string;
+  rateLimitMax: number;
   // OpenAI
   openaiApiKey: string;
   openaiApiBase: string;
@@ -107,6 +110,8 @@ export interface AppConfig {
   // Mailgun
   mailgunApiKey: string;
   mailgunDomain: string;
+  // Moodle
+  moodleApiKey: string;
   // Logging
   logLevel: string;
   logToFile: boolean;

@@ -118,6 +118,16 @@ npm run lint
 - **Full Lead Capture**: API generates PDF via Puppeteer, stores in MySQL & Google Sheets, sends via Mailgun
 - **Error resilience**: DB/Sheet failures are caught and logged — email is still sent
 - **Graceful shutdown**: SIGTERM/SIGINT handler closes DB pool and HTTP server
+- **Moodle API**: REST endpoints under `/api/v1/moodle/*` require `X-Api-Key` header (config: `MOODLE_API_KEY`)
+- **Security**: CORS restricted via `CORS_ORIGIN`, rate limiting via `RATE_LIMIT_MAX`, CSP via helmet, MySQL non-root user
+- **Production proxy**: Cloudflare Tunnel (cloudflared) — no Nginx needed in Docker mode
+
+| Variable | Purpose |
+|----------|---------|
+| `CORS_ORIGIN` | Comma-separated allowed origins (set to frontend URL in production) |
+| `RATE_LIMIT_MAX` | Max requests per 15-min window per IP |
+| `MOODLE_API_KEY` | Secret token for Moodle endpoint auth |
+| `DB_ROOT_PASSWORD` | MySQL root password (docker-compose only)
 
 # Development
 npm run dev             # Start server + Vite dev server

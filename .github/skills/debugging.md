@@ -132,6 +132,41 @@ docker compose ps
 docker compose restart
 ```
 
+## New Issues (Post-Hardening)
+
+### 7. Moodle API "ERR_CONFIG" (500)
+
+**Symptom**: `MOODLE_API_KEY no configurada` al llamar a `/api/v1/moodle/*`
+
+**Solution**: Agregar `MOODLE_API_KEY=<secret>` en `.env`
+
+### 8. Moodle API "ERR_401"
+
+**Symptom**: `No autorizado. X-Api-Key inválida o faltante.`
+
+**Solution**: El header `X-Api-Key` debe coincidir con `MOODLE_API_KEY` del `.env`
+
+### 9. Rate Limited (429)
+
+**Symptom**: `Demasiadas solicitudes`
+
+**Solution**: Aumentar `RATE_LIMIT_MAX` en `.env` (default 100) o esperar 15 min
+
+### 10. CORS Blocked (browser)
+
+**Symptom**: Consola del navegador muestra error CORS
+
+**Solution**: Verificar `CORS_ORIGIN` incluya exactamente la URL del frontend
+
+### 11. Cloudflare Tunnel — 502 Bad Gateway
+
+**Symptom**: El túnel está arriba pero devuelve 502
+
+**Solution**:
+- Verificar que la app responde: `curl http://localhost:3000/health`
+- Revisar logs: `docker compose logs app`
+- Verificar estado del túnel: `sudo systemctl status cloudflared`
+
 ## VS Code Debugging
 
 ### Launch Configurations

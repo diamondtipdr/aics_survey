@@ -16,6 +16,12 @@ export const config: AppConfig = {
   port: parseInt(getEnv('PORT', '3000'), 10),
   nodeEnv: getEnv('NODE_ENV', 'development'),
 
+  // CORS — comma-separated origins, or * for all
+  corsOrigin: getEnv('CORS_ORIGIN', '*'),
+
+  // Rate limiting — max requests per 15-min window
+  rateLimitMax: parseInt(getEnv('RATE_LIMIT_MAX', '100'), 10),
+
   // OpenAI
   openaiApiKey: getEnv('OPENAI_API_KEY'),
   openaiApiBase: getEnv('OPENAI_API_BASE', 'https://api.openai.com/v1'),
@@ -36,6 +42,9 @@ export const config: AppConfig = {
   // Mailgun
   mailgunApiKey: getEnv('MAILGUN_API_KEY', ''),
   mailgunDomain: getEnv('MAILGUN_DOMAIN', ''),
+
+  // Moodle API
+  moodleApiKey: getEnv('MOODLE_API_KEY', ''),
 
   // Logging
   logLevel: getEnv('LOG_LEVEL', 'info'),

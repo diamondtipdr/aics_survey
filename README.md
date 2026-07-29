@@ -143,8 +143,12 @@ npm run dev
 | `LOG_LEVEL` | Nivel de log (`debug`, `info`, `warn`, `error`) | `info` |
 | `LOG_TO_FILE` | Persistir logs a archivo | `true` |
 | `LOG_FILE_PATH` | Ruta del archivo de log | `/app/logs/app.log` |
-| `AUDIT_ENABLED` | Auditoría de cada request | `true` |
-| `PUPPETEER_EXECUTABLE_PATH` | Ruta al binario de Chromium | *(auto-detect)* |
+| `CORS_ORIGIN` | Orígenes permitidos por CORS (`,` separados) | `*` (dev) / URL producción |
+| `RATE_LIMIT_MAX` | Máx. requests por IP cada 15 min | `100` |
+| `MOODLE_API_KEY` | API key para endpoints `/api/v1/moodle/*` | *(requerido en prod)* |
+| `CORS_ORIGIN` | Orígenes permitidos por CORS (`,` separados) | `*` (dev) / URL producción |
+| `RATE_LIMIT_MAX` | Máx. requests por IP cada 15 min | `100` |
+| `MOODLE_API_KEY` | API key para endpoints `/api/v1/moodle/*` | *(requerido en prod)* |
 
 > **Nota**: `GOOGLE_SERVICE_ACCOUNT_KEY_PATH` puede apuntar a un archivo JSON local
 > o contener el contenido del JSON directamente si se usa la variable
@@ -452,39 +456,97 @@ aics-lead-magnet-engine/
 }
 ```
 
-## Producción — Despliegue en Servidor
+## Producción — Despliegue Hardened con Cloudflare Tunnel
 
-### Opción 1: Docker Compose (recomendada)
+Todas las medidas de seguridad están integradas en la app y configuración. Cloudflare Tunnel (cloudflared) reemplaza a Nginx + Certbot — no necesitas exponer puertos HTTP ni manejar TLS.
+
+### Checklist pre-despliegue
+
+| Requisito | Para qué | Dónde se configura |
+|-----------|----------|-------------------|
+| Dominio en Cloudflare | DNS apuntando al Tunnel | Cloudflare Dashboard |
+| `cloudflared` instalado | Crear el túnel | Servidor |
+| `.env` con datos reales | Conexión a servicios externos | `cp .env.example .env` |
+| `MOODLE_API_KEY` única y fuerte | Proteger endpoints de Moodle | `.env` |
+| `CORS_ORIGIN` = `https://tudominio.com` | Evitar CORS abierto | `.env` |
+| `RATE_LIMIT_MAX` = 100 | Prevenir abuso de API | `.env` |
+| Credenciales Google Sheets JSON | Almacenar en Google Sheets | `./secrets/google-service-account.json` |
+| `DB_USER=aics_app`, `DB_ROOT_PASSWORD` fuerte | MySQL sin usuario root | `docker-compose.yml` + `.env` |
+
+### Paso a paso
 
 ```bash
 # 1. Clonar en el servidor
 git clone <repo-url> /opt/aics-lead-magnet
 cd /opt/aics-lead-magnet
 
-# 2. Configurar entorno
+# 2. Crear .env con datos de producción
 cp .env.example .env
-# Editar TODAS las variables requeridas (ver tabla arriba)
+# Editar MINIMAMENTE estas variables:
+#   OPENAI_API_KEY, MAILGUN_API_KEY, MAILGUN_DOMAIN,
+#   DB_PASSWORD, DB_ROOT_PASSWORD, MOODLE_API_KEY,
+#   CORS_ORIGIN=https://tudominio.com
+#   NODE_ENV=production
 
 # 3. Copiar credenciales de Google (si aplica)
 cp /ruta/a/tu/google-service-account.json ./secrets/google-service-account.json
 
-# 4. Iniciar servicios
+# 4. Configurar firewall
+sudo ufw allow 22/tcp          # SSH
+sudo ufw --force enable        # ¡Solo SSH abierto!
+
+# 5. Iniciar servicios
 docker compose up -d
 
-# 5. Verificar estado
-docker compose ps
+# 6. Verificar que la app responde localmente
 curl http://localhost:3000/health
 
-# 6. Ver logs
-docker compose logs -f app
+# 7. Instalar y configurar Cloudflare Tunnel
+#    (sigue https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
+sudo cloudflared tunnel login
+sudo cloudflared tunnel create aics-lead-magnet
+
+# 8. Configurar el túnel (archivo YAML en ~/.cloudflared/config.yml):
+#    tunnel: <tunnel-id>
+#    credentials-file: /root/.cloudflared/<tunnel-id>.json
+#    ingress:
+#      - hostname: tudominio.com
+#        service: http://localhost:3000
+#      - service: http_status:404
+
+# 9. Rutear DNS en Cloudflare
+sudo cloudflared tunnel route dns aics-lead-magnet tudominio.com
+
+# 10. Iniciar túnel como servicio
+sudo cloudflared install
+sudo systemctl start cloudflared
+
+# 11. Verificar desde internet
+curl https://tudominio.com/health
 ```
 
-### Opción 2: Despliegue manual (sin Docker)
+### Probar los endpoints
 
 ```bash
-# 1. Instalar dependencias del sistema (Ubuntu/Debian)
+# Preview Mode
+curl -X POST https://tudominio.com/api/v1/scorecard/process \
+  -H "Content-Type: application/json" \
+  -d '{"answers":[{"questionId":1,"value":3},{"questionId":2,"value":4},{"questionId":3,"value":2},{"questionId":4,"value":3},{"questionId":5,"value":2},{"questionId":6,"value":1},{"questionId":7,"value":3},{"questionId":8,"value":2},{"questionId":9,"value":4},{"questionId":10,"value":3},{"questionId":11,"value":2},{"questionId":12,"value":1},{"questionId":13,"value":4},{"questionId":14,"value":3},{"questionId":15,"value":2},{"questionId":16,"value":4}],"dept_size":"11-50","industry":"Tecnología","name":"Test"}'
+
+# Moodle endpoints (requieren X-Api-Key)
+curl -H "X-Api-Key: tu-moodle-api-key" \
+  https://tudominio.com/api/v1/moodle/pending
+
+# Logs
+docker compose logs -f --tail=100 app
+```
+
+### Despliegue manual (sin Docker)
+
+```bash
+# 1. Instalar dependencias
 sudo apt update
-sudo apt install -y nodejs npm mysql-server chromium-browser nginx
+sudo apt install -y nodejs npm mysql-server chromium-browser
 
 # 2. Clonar e instalar
 git clone <repo-url> /opt/aics-lead-magnet
@@ -493,72 +555,60 @@ npm ci
 
 # 3. Configurar MySQL
 sudo mysql -e "CREATE DATABASE IF NOT EXISTS aics_leads;"
+sudo mysql -e "CREATE USER IF NOT EXISTS 'aics_app'@'localhost' IDENTIFIED BY 'password-fuerte';"
+sudo mysql -e "GRANT SELECT, INSERT, UPDATE ON aics_leads.* TO 'aics_app'@'localhost';"
 sudo mysql aics_leads < sql/init.sql
 
 # 4. Configurar variables
 cp .env.example .env
-# Editar DB_HOST=localhost y demás variables
+# Editar DB_USER=aics_app, DB_PASSWORD, DB_HOST=localhost
+# Editar NODE_ENV=production, CORS_ORIGIN=...
 
 # 5. Construir
 npm run build
 
-# 6. Ejecutar con PM2 (gestor de procesos)
+# 6. Ejecutar con PM2
 npm install -g pm2
 pm2 start dist/server.js --name aics-lead-magnet
 pm2 save
-pm2 startup  # Configura inicio automático al bootear
+pm2 startup
+
+# 7. Exponer con Cloudflare Tunnel
+sudo cloudflared tunnel --url http://localhost:3000
 ```
 
-### Configuración de Nginx (proxy inverso)
+### Seguridad integrada (resumen)
 
-```nginx
-server {
-    listen 80;
-    server_name auditancia.com;
+| Medida | Cómo se aplica |
+|--------|---------------|
+| **CORS restringido** | `CORS_ORIGIN` en `.env` → `app.ts` |
+| **Rate limiting** | `RATE_LIMIT_MAX` → `express-rate-limit` en `app.ts` |
+| **Auth en Moodle API** | `MOODLE_API_KEY` → middleware `X-Api-Key` |
+| **CSP (Content Security Policy)** | `helmet` con directivas en `app.ts` |
+| **Trust proxy** | `app.set('trust proxy', 1)` → Cloudflare envía IP real |
+| **MySQL no-root** | `MYSQL_USER=aics_app` |
+| **MySQL puerto local** | `127.0.0.1:3307` — solo accesible localmente |
+| **TLS/HTTPS** | Cloudflare Tunnel (automático) |
+| **Firewall** | UFW: solo puerto 22 |
+| **Sin superficie Nginx** | Cloudflare Tunnel reemplaza proxy inverso |
+| **Non-root container** | `USER node` en Dockerfile |
 
-    client_max_body_size 10M;
+### Variables de entorno para producción
 
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # Seguridad
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-}
-```
-
-Para TLS (recomendado):
 ```bash
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d auditancia.com
+# Mínimo requerido
+NODE_ENV=production
+CORS_ORIGIN=https://tudominio.com
+RATE_LIMIT_MAX=100
+MOODLE_API_KEY=<uuid-o-token-seguro>
+DB_PASSWORD=<password-fuerte>
+DB_ROOT_PASSWORD=<root-password-fuerte>
+# ... más las API keys de OpenAI, Mailgun, etc.
 ```
-
-### Seguridad en Producción
-
-| Medida | Descripción |
-|--------|-------------|
-| **TLS/HTTPS** | Usar Certbot/Let's Encrypt para certificados |
-| **Firewall** | Solo exponer puertos 80/443. MySQL (3306) interno |
-| **Rate limiting** | Configurar en Nginx o agregar `express-rate-limit` |
-| **Secrets** | No subir `.env` ni `secrets/` al repositorio |
-| **Actualizaciones** | `docker compose pull && docker compose up -d` |
-| **Monitoreo** | Revisar logs: `docker compose logs -f app` |
-| **Backups** | Respaldar MySQL: `mysqldump -u root -p aics_leads > backup.sql` |
 
 ### Health Checks y Monitoreo
 
-El contenedor incluye un health check integrado (Dockerfile) que verifica
-`GET /health` cada 30s. Docker reinicia automáticamente si falla 3 veces.
+El contenedor incluye health check integrado (Dockerfile) que verifica `GET /health` cada 30s.
 
 ```bash
 # Ver health check del contenedor
@@ -568,25 +618,17 @@ docker inspect --format='{{json .State.Health}}' aics-lead-magnet
 docker compose logs -f --tail=100 app
 ```
 
-### Escalamiento y Performance
-
-- La app es stateless (toda la persistencia va a MySQL)
-- Se puede escalar horizontalmente detrás de Nginx
-- MySQL es el cuello de botella — considerar réplicas si hay alta carga
-- Puppeteer/Chromium consume ~200 MB de RAM por instancia — planificar recursos
-
 ### Rolling Update
 
 ```bash
-# Con Docker Compose
 docker compose pull app
 docker compose up -d --no-deps app
+```
 
-# Con PM2
-git pull origin main
-npm ci
-npm run build
-pm2 reload aics-lead-magnet
+### Backup de MySQL
+
+```bash
+docker compose exec mysql mysqldump -u root -p"$DB_ROOT_PASSWORD" aics_leads > backup_$(date +%Y%m%d).sql
 ```
 
 ## Licencia
