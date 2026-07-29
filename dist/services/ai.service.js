@@ -32,14 +32,22 @@ Pillar 2 (Automatización): ${pillars[1]?.score ?? 0}
 Pillar 3 (Agilidad): ${pillars[2]?.score ?? 0}
 Pillar 4 (Impacto & Comunicación): ${pillars[3]?.score ?? 0}
 
-Write a strict 5-paragraph diagnostic report.
-Paragraph 1: Direct assessment of their overall maturity level based on the total score.
-Paragraph 2: Brief diagnosis of Pillar 1 and exactly ONE highly actionable advice (Quick Win) to improve it.
-Paragraph 3: Brief diagnosis of Pillar 2 and exactly ONE highly actionable advice (Quick Win) to improve it.
-Paragraph 4: Brief diagnosis of Pillar 3 and exactly ONE highly actionable advice (Quick Win) to improve it.
-Paragraph 5: Brief diagnosis of Pillar 4 and exactly ONE highly actionable advice (Quick Win) to improve it.
+Write a diagnostic report structured into EXACTLY 4 sections, one per pillar. Use the following EXACT format for each section:
 
-RULES: Use 'usted', be direct, no greetings, no markdown, just plain text separated by newlines. DO NOT INCLUDE ANY URLS OR LINKS.`;
+### [Nombre del Pilar] (X/16)
+
+[1-2 paragraphs of diagnosis for this pillar]
+
+### Quick Win — [Nombre del Pilar]
+
+[A single paragraph with one highly actionable quick win recommendation]
+
+RULES:
+- Use 'usted', be direct, no greetings, no salutations.
+- Do NOT include an introductory paragraph or conclusion — start directly with "### Integración".
+- Do NOT use markdown other than the ### headings specified above.
+- Do NOT include any URLs or links.
+- Separate sections with EXACTLY one blank line.`;
     logger.info('Calling AI provider', {
         model: config_1.config.openaiModel,
         baseUrl: config_1.config.openaiApiBase,

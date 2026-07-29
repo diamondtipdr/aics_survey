@@ -22,6 +22,7 @@ export const ScorecardRequestSchema = z.object({
   industry: z.string().max(255).optional(),
   name: z.string().max(255).optional(),
   email: z.string().email('Invalid email format').optional(),
+  country: z.string().max(255).optional(),
 });
 
 export type ScorecardInput = z.infer<typeof ScorecardRequestSchema>;

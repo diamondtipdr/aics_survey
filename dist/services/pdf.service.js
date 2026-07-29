@@ -43,7 +43,7 @@ async function generatePdf(data, ctx) {
         .replace(/\{\{P4_SCORE\}\}/g, String(data.pillars[3]?.score ?? 0))
         .replace(/\{\{P4_LABEL\}\}/g, data.pillars[3]?.label ?? '')
         .replace(/\{\{P4_PERCENT\}\}/g, calcPct(data.pillars[3]))
-        .replace(/\{\{AI_REPORT\}\}/g, escapeHtml(data.aiReport).replace(/\n/g, '<br>'));
+        .replace(/\{\{AI_REPORT\}\}/g, renderAiReport(data.aiReport));
     // Inject logo as base64 data URL
     if (logoBase64) {
         html = html.replace(/\{\{LOGO_SRC\}\}/g, `data:image/png;base64,${logoBase64}`);
@@ -140,5 +140,45 @@ function escapeHtml(text) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+/**
+ * Convert the structured AI report (with ### headers) into styled HTML.
+ * Each "### Pillar Name (X/16)" becomes an h3.
+ * Each "### Quick Win — Pillar Name" becomes an h3 with quick-win styling.
+ */
+function renderAiReport(aiReport) {
+    const lines = aiReport.split('\n');
+    const htmlParts = [];
+    let inQuickWin = false;
+    for (const line of lines) {
+        const headingMatch = line.match(/^###\s+(.+)/);
+        if (headingMatch) {
+            const heading = headingMatch[1].trim();
+            if (heading.startsWith('Quick Win')) {
+                inQuickWin = true;
+                const pillarName = heading.replace(/^Quick Win\s*[—–-]?\s*/, '');
+                htmlParts.push(`<h3 class="quick-win-heading">⚡ Quick Win — ${escapeHtml(pillarName)}</h3>`);
+            }
+            else {
+                inQuickWin = false;
+                // Extract score from heading like "Integración (12/16)"
+                const scoreMatch = heading.match(/\((\d+)\/(\d+)\)/);
+                const pillarName = heading.replace(/\s*\(\d+\/\d+\)\s*$/, '').trim();
+                if (scoreMatch) {
+                    htmlParts.push(`<h3 class="pillar-heading">${escapeHtml(pillarName)} <span class="pillar-heading-score">${escapeHtml(scoreMatch[0])}</span></h3>`);
+                }
+                else {
+                    htmlParts.push(`<h3 class="pillar-heading">${escapeHtml(heading)}</h3>`);
+                }
+            }
+        }
+        else if (line.trim() === '') {
+            htmlParts.push('<br>');
+        }
+        else {
+            htmlParts.push(`<p class="${inQuickWin ? 'quick-win-text' : ''}">${escapeHtml(line)}</p>`);
+        }
+    }
+    return htmlParts.join('\n');
 }
 //# sourceMappingURL=pdf.service.js.map

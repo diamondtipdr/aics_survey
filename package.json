@@ -4,7 +4,7 @@
   "description": "Microservice that processes assessment form responses, generates AI-powered PDF reports, and dispatches them via Mailgun",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc && copyfiles -u 1 src/templates/**/* dist/ && npm run build:spa",
+    "build": "tsc --project tsconfig.build.json && copyfiles -u 1 \"src/templates/**/*\" dist/ && npm run build:spa",
     "build:spa": "vite build",
     "start": "node dist/server.js",
     "dev": "concurrently \"ts-node-dev --respawn --transpile-only src/server.ts\" \"vite\"",

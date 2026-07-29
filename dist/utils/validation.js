@@ -23,6 +23,7 @@ exports.ScorecardRequestSchema = zod_1.z.object({
     industry: zod_1.z.string().max(255).optional(),
     name: zod_1.z.string().max(255).optional(),
     email: zod_1.z.string().email('Invalid email format').optional(),
+    country: zod_1.z.string().max(255).optional(),
 });
 /**
  * Validate a scorecard payload.

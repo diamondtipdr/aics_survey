@@ -20,6 +20,7 @@ export declare const ScorecardRequestSchema: z.ZodObject<{
     industry: z.ZodOptional<z.ZodString>;
     name: z.ZodOptional<z.ZodString>;
     email: z.ZodOptional<z.ZodString>;
+    country: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     answers: {
         questionId: number;
@@ -29,6 +30,7 @@ export declare const ScorecardRequestSchema: z.ZodObject<{
     industry?: string | undefined;
     name?: string | undefined;
     email?: string | undefined;
+    country?: string | undefined;
 }, {
     answers: {
         questionId: number;
@@ -38,6 +40,7 @@ export declare const ScorecardRequestSchema: z.ZodObject<{
     industry?: string | undefined;
     name?: string | undefined;
     email?: string | undefined;
+    country?: string | undefined;
 }>;
 export type ScorecardInput = z.infer<typeof ScorecardRequestSchema>;
 /**

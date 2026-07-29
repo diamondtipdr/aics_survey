@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
+const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 function getEnv(key, fallback) {
     const val = process.env[key] ?? fallback;
@@ -36,7 +37,7 @@ exports.config = {
     // Logging
     logLevel: getEnv('LOG_LEVEL', 'info'),
     logToFile: getEnv('LOG_TO_FILE', 'true') === 'true',
-    logFilePath: getEnv('LOG_FILE_PATH', '/app/logs/app.log'),
+    logFilePath: getEnv('LOG_FILE_PATH', path_1.default.join(__dirname, '../../logs/app.log')),
     auditEnabled: getEnv('AUDIT_ENABLED', 'true') === 'true',
 };
 //# sourceMappingURL=config.js.map

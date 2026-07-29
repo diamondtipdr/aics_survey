@@ -7,7 +7,6 @@ This skill provides guidance for the development workflow of the AICS Lead Magne
 ## Project Structure
 
 ```
-aics-lead-magnet-engine/
 ├── src/
 │   ├── app.ts              # Express app setup
 │   ├── server.ts           # Server entry point

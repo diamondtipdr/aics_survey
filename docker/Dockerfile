@@ -12,9 +12,10 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Copy all source files needed for building
-COPY tsconfig.json ./
+COPY tsconfig.json tsconfig.build.json ./
 COPY vite.config.ts ./
 COPY index.html ./
+COPY public/ ./public/
 COPY src/ ./src/
 
 # Build both backend and frontend
