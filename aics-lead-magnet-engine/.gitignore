@@ -1,8 +1,0 @@
-
-# Secrets
-/secrets/google-service-account.json
-/secrets/*.pem
-/secrets/*.key
-
-# Environment files
-.env
