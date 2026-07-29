@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import scorecardRouter from './routes/scorecard';
+import moodleRouter from './routes/moodle';
 import { withContext } from './utils/logger';
 
 const app = express();
@@ -43,6 +44,7 @@ app.get('/health', (_req, res) => {
 
 // ── Routes ──
 app.use('/api/v1/scorecard', scorecardRouter);
+app.use('/api/v1/moodle', moodleRouter);
 
 // ── 404 handler ──
 app.use((_req, res) => {

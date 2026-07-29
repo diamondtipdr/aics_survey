@@ -12,7 +12,8 @@ This skill provides guidance for the development workflow of the AICS Lead Magne
 │   ├── server.ts           # Server entry point
 │   ├── main.tsx            # React entry point
 │   ├── routes/
-│   │   └── scorecard.ts    # API routes
+│   │   ├── scorecard.ts    # POST /api/v1/scorecard/process
+│   │   └── moodle.ts       # Moodle REST endpoints
 │   ├── services/
 │   │   ├── ai.service.ts   # OpenAI integration
 │   │   ├── db.service.ts   # MySQL + Google Sheets
@@ -24,8 +25,13 @@ This skill provides guidance for the development workflow of the AICS Lead Magne
 │   │   └── validation.ts   # Zod schemas
 │   ├── types/
 │   │   └── index.ts        # TypeScript interfaces
-│   └── components/
-│       └── aics_lead_magnet.tsx  # React frontend
+│   ├── components/
+│   │   ├── aics_lead_magnet.tsx  # React frontend component
+│   │   └── aics_lead_magnet.css  # Frontend styles
+│   └── templates/
+│       ├── report.html           # PDF HTML template
+│       └── assets/
+│           └── logo.png          # Logo for PDFs
 ├── tests/
 │   ├── setup.ts            # Test environment
 │   ├── teardown.ts         # Test cleanup
@@ -37,7 +43,14 @@ This skill provides guidance for the development workflow of the AICS Lead Magne
 ├── docker/
 │   └── Dockerfile          # Multi-stage build
 ├── dist/                   # Build output
-└── logs/                   # Application logs
+├── public/                 # Static assets
+├── logs/                   # Application logs
+├── vite.config.ts          # Vite bundler config
+├── index.html              # SPA HTML shell
+├── jest.config.ts
+├── tsconfig.json
+├── tsconfig.build.json
+└── package.json
 ```
 
 ## Development Setup
@@ -50,6 +63,7 @@ This skill provides guidance for the development workflow of the AICS Lead Magne
 - OpenAI API key (or compatible endpoint)
 - Mailgun account
 - Google Cloud Service Account
+- Chromium (for PDF generation)
 
 ### Initial Setup
 
@@ -69,6 +83,9 @@ docker compose up mysql -d
 
 # 5. Run migrations (if needed)
 # MySQL initializes from sql/init.sql automatically
+
+# 6. Install Chromium for PDF generation
+npx puppeteer browsers install chrome
 ```
 
 ## Development Commands
@@ -77,6 +94,30 @@ docker compose up mysql -d
 # Build
 npm run build           # Build backend + frontend
 npm run build:spa       # Frontend only
+
+# Development with hot reload
+npm run dev             # Backend (ts-node-dev) + Frontend (Vite)
+
+# Start production build
+npm start
+
+# Run tests
+npm test
+npm run test:watch
+npm run test:coverage
+
+# Linting
+npm run lint
+```
+
+## Key Architecture Decisions
+
+- **Dual build pipeline**: TypeScript (`tsc`) for backend, Vite for React SPA
+- **Frontend served by Express**: Built SPA (`dist/public/`) served via `express.static`
+- **Preview Mode**: Frontend calculates scores locally (no API call) when user doesn't provide email
+- **Full Lead Capture**: API generates PDF via Puppeteer, stores in MySQL & Google Sheets, sends via Mailgun
+- **Error resilience**: DB/Sheet failures are caught and logged — email is still sent
+- **Graceful shutdown**: SIGTERM/SIGINT handler closes DB pool and HTTP server
 
 # Development
 npm run dev             # Start server + Vite dev server

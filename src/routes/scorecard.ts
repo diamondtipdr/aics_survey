@@ -45,7 +45,7 @@ router.post('/process', async (req: Request, res: Response) => {
       return;
     }
 
-    const { answers, name, email, industry, dept_size } = validation.data;
+    const { answers, name, email, industry, dept_size, country } = validation.data;
 
     // ── Step B: Score Calculation ──
     const pillarDefs = getPillarMap();
@@ -111,6 +111,8 @@ router.post('/process', async (req: Request, res: Response) => {
       answers: answers as Answer[],
       industry,
       deptSize: dept_size,
+      country,
+      aiReport,
     };
 
     // Insert into MySQL (fire-and-forget safety — errors are caught)

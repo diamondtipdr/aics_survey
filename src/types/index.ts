@@ -55,6 +55,8 @@ export interface LeadRecord {
   answers: Answer[];
   industry?: string;
   deptSize?: string;
+  country?: string;
+  aiReport?: string;
 }
 
 /** Response shape for Preview Mode (no email) */
@@ -117,4 +119,41 @@ export interface LogContext {
   requestId: string;
   component: string;
   [key: string]: unknown;
+}
+
+// ──────────────────────────────────────────────
+// Moodle Integration Types
+// ──────────────────────────────────────────────
+
+/** A lead record as stored in MySQL (for Moodle consumption) */
+export interface MoodleLead {
+  id: number;
+  name: string;
+  email: string;
+  totalScore: number;
+  pillar1Score: number;
+  pillar2Score: number;
+  pillar3Score: number;
+  pillar4Score: number;
+  answers: Answer[];
+  industry: string | null;
+  deptSize: string | null;
+  country: string | null;
+  aiReport: string | null;
+  createdAt: string;
+  processed: boolean;
+}
+
+/** Aggregated statistics for Moodle dashboard */
+export interface MoodleStats {
+  totalLeads: number;
+  pendingLeads: number;
+  processedLeads: number;
+  averageScore: number;
+  scoreDistribution: {
+    basic: number;      // 16-31
+    intermediate: number; // 32-47
+    advanced: number;    // 48-64
+  };
+  industryBreakdown: Record<string, number>;
 }
