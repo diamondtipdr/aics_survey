@@ -13,7 +13,7 @@ function getEnv(key: string, fallback?: string): string {
 }
 
 export const config: AppConfig = {
-  port: parseInt(getEnv('PORT', '3000'), 10),
+  port: parseInt(getEnv('PORT', '3005'), 10),
   nodeEnv: getEnv('NODE_ENV', 'development'),
 
   // CORS — comma-separated origins, or * for all

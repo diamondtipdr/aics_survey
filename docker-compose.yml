@@ -29,7 +29,7 @@ services:
     container_name: aics-lead-magnet
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${PORT:-3000}:3005"
+      - "127.0.0.1:${PORT:-3005}:3005"
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: "3005"
@@ -46,7 +46,7 @@ services:
       MAILGUN_API_KEY: ${MAILGUN_API_KEY}
       MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
       MOODLE_API_KEY: ${MOODLE_API_KEY}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3005}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_TO_FILE: ${LOG_TO_FILE:-true}

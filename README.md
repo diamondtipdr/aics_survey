@@ -62,10 +62,10 @@ cp .env.example .env
 docker compose up -d
 
 # 4. Verificar health
-curl http://localhost:3000/health
+curl http://localhost:3005/health
 
 # 5. Probar endpoint (Preview Mode — sin email)
-curl -X POST http://localhost:3000/api/v1/scorecard/process \
+curl -X POST http://localhost:3005/api/v1/scorecard/process \
   -H "Content-Type: application/json" \
   -d '{
     "answers": [
@@ -84,7 +84,7 @@ curl -X POST http://localhost:3000/api/v1/scorecard/process \
   }'
 
 # 6. Probar Full Lead Capture (con email)
-curl -X POST http://localhost:3000/api/v1/scorecard/process \
+curl -X POST http://localhost:3005/api/v1/scorecard/process \
   -H "Content-Type: application/json" \
   -d '{
     "answers": [ ... 16 respuestas ... ],
@@ -138,7 +138,7 @@ npm run dev
 | `GOOGLE_SHEET_ID` | ID del Google Sheet | *(opcional)* |
 | `MAILGUN_API_KEY` | API key de Mailgun | *(requerido para full mode)* |
 | `MAILGUN_DOMAIN` | Dominio configurado en Mailgun | *(requerido para full mode)* |
-| `PORT` | Puerto del servidor | `3000` |
+| `PORT` | Puerto del servidor | `3005` |
 | `NODE_ENV` | Entorno | `development` |
 | `LOG_LEVEL` | Nivel de log (`debug`, `info`, `warn`, `error`) | `info` |
 | `LOG_TO_FILE` | Persistir logs a archivo | `true` |
@@ -220,7 +220,7 @@ La aplicación expone endpoints REST para que Moodle consuma los leads de forma 
 Lista leads pendientes de procesar (no marcados como `processed`).
 
 ```bash
-curl http://localhost:3000/api/v1/moodle/pending?limit=50&offset=0
+curl http://localhost:3005/api/v1/moodle/pending?limit=50&offset=0
 ```
 
 **Query params:** `?limit=50&offset=0`
@@ -256,7 +256,7 @@ curl http://localhost:3000/api/v1/moodle/pending?limit=50&offset=0
 Lista todos los leads con filtros opcionales.
 
 ```bash
-curl 'http://localhost:3000/api/v1/moodle/leads?processed=false&minScore=32&industry=Tecnología'
+curl 'http://localhost:3005/api/v1/moodle/leads?processed=false&minScore=32&industry=Tecnología'
 ```
 
 | Query param | Tipo | Descripción |
@@ -273,7 +273,7 @@ curl 'http://localhost:3000/api/v1/moodle/leads?processed=false&minScore=32&indu
 Obtiene un lead específico con su reporte de IA completo.
 
 ```bash
-curl http://localhost:3000/api/v1/moodle/leads/1
+curl http://localhost:3005/api/v1/moodle/leads/1
 ```
 
 #### `POST /api/v1/moodle/leads/:id/process`
@@ -281,7 +281,7 @@ curl http://localhost:3000/api/v1/moodle/leads/1
 Marca un lead como procesado. Una vez marcado, ya no aparece en el endpoint pendiente.
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/moodle/leads/1/process
+curl -X POST http://localhost:3005/api/v1/moodle/leads/1/process
 
 # Response:
 {
@@ -295,7 +295,7 @@ curl -X POST http://localhost:3000/api/v1/moodle/leads/1/process
 Estadísticas agregadas útiles para un dashboard de Moodle.
 
 ```bash
-curl http://localhost:3000/api/v1/moodle/stats
+curl http://localhost:3005/api/v1/moodle/stats
 ```
 
 ```json
@@ -499,7 +499,7 @@ sudo ufw --force enable        # ¡Solo SSH abierto!
 docker compose up -d
 
 # 6. Verificar que la app responde localmente
-curl http://localhost:3000/health
+curl http://localhost:3005/health
 
 # 7. Instalar y configurar Cloudflare Tunnel
 #    (sigue https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/)
@@ -511,7 +511,7 @@ sudo cloudflared tunnel create aics-lead-magnet
 #    credentials-file: /root/.cloudflared/<tunnel-id>.json
 #    ingress:
 #      - hostname: tudominio.com
-#        service: http://localhost:3000
+#        service: http://localhost:3005
 #      - service: http_status:404
 
 # 9. Rutear DNS en Cloudflare
@@ -574,7 +574,7 @@ pm2 save
 pm2 startup
 
 # 7. Exponer con Cloudflare Tunnel
-sudo cloudflared tunnel --url http://localhost:3000
+sudo cloudflared tunnel --url http://localhost:3005
 ```
 
 ### Seguridad integrada (resumen)

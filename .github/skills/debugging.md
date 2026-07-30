@@ -92,7 +92,7 @@ logger.error('Error', { error: err.message });
 ### Health Check
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3005/health
 ```
 
 Expected response:
@@ -163,7 +163,7 @@ docker compose restart
 **Symptom**: El túnel está arriba pero devuelve 502
 
 **Solution**:
-- Verificar que la app responde: `curl http://localhost:3000/health`
+- Verificar que la app responde: `curl http://localhost:3005/health`
 - Revisar logs: `docker compose logs app`
 - Verificar estado del túnel: `sudo systemctl status cloudflared`
 
@@ -202,7 +202,7 @@ Add to `.vscode/launch.json`:
 
 ```bash
 # Check if port is in use
-lsof -i :3000
+lsof -i :3005
 
 # View running processes
 ps aux | grep node
@@ -223,12 +223,12 @@ npm run lint
 
 ```bash
 # Preview mode (no email)
-curl -X POST http://localhost:3000/api/v1/scorecard/process \
+curl -X POST http://localhost:3005/api/v1/scorecard/process \
   -H "Content-Type: application/json" \
   -d @tests/fixtures/sample-payload.json
 
 # Check response
-curl -v http://localhost:3000/api/v1/scorecard/process
+curl -v http://localhost:3005/api/v1/scorecard/process
 ```
 
 ### Check Database Records

@@ -15,7 +15,7 @@ function getEnv(key, fallback) {
     return val;
 }
 exports.config = {
-    port: parseInt(getEnv('PORT', '3000'), 10),
+    port: parseInt(getEnv('PORT', '3005'), 10),
     nodeEnv: getEnv('NODE_ENV', 'development'),
     // OpenAI
     openaiApiKey: getEnv('OPENAI_API_KEY'),

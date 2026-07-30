@@ -93,7 +93,7 @@ docker compose up -d    # Start services
 docker compose down     # Stop services
 ```
 
-Services: `mysql` (port 3307), `app` (port 3000)
+Services: `mysql` (port 3307), `app` (port 3005)
 
 ## Common Patterns
 
@@ -153,4 +153,4 @@ npm run build           # Builds both backend and frontend
 npm run build:spa       # Frontend only (vite build)
 ```
 
-The Vite dev server proxies `/api/*` requests to the backend (port 3000).
+The Vite dev server proxies `/api/*` requests to the backend (port 3005).
