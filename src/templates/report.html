@@ -16,26 +16,33 @@
       padding: 40px 30px;
     }
 
+    /* ── Page 1: compact layout to fit header, score, radar + pillars ── */
+    .page-1 {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
     /* ── Header ── */
     .header {
       background: linear-gradient(135deg, #1a3a5c 0%, #2a6f97 100%);
       color: #ffffff;
-      padding: 40px 30px;
+      padding: 24px 20px;
       border-radius: 12px 12px 0 0;
       text-align: center;
     }
     .header .logo {
-      max-height: 60px;
-      margin-bottom: 16px;
+      max-height: 50px;
+      margin-bottom: 8px;
     }
     .header h1 {
       font-family: 'Montserrat', sans-serif;
-      font-size: 26px;
+      font-size: 22px;
       font-weight: 700;
-      margin: 0 0 6px;
+      margin: 0 0 4px;
     }
     .header .subtitle {
-      font-size: 15px;
+      font-size: 13px;
       opacity: 0.85;
     }
 
@@ -44,34 +51,34 @@
       background: #f0f6ff;
       border: 1px solid #d6e6ff;
       border-radius: 10px;
-      padding: 25px;
-      margin: 24px 0;
+      padding: 14px 20px;
+      margin: 12px 0;
       text-align: center;
     }
     .score-summary .big-score {
-      font-size: 48px;
+      font-size: 40px;
       font-weight: 800;
       color: #1a3a5c;
       line-height: 1;
     }
     .score-summary .big-score span {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 400;
       color: #6b7a8f;
     }
     .score-summary .greeting {
-      font-size: 16px;
+      font-size: 14px;
       color: #2a6f97;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     /* ── Radar Chart ── */
     .chart-container {
       text-align: center;
-      margin: 24px 0;
+      margin: 8px 0;
     }
     .chart-container img {
-      max-width: 380px;
+      max-width: 300px;
       height: auto;
       border-radius: 8px;
       border: 1px solid #e0e6ed;
@@ -80,41 +87,41 @@
     /* ── Pillars Grid ── */
     .pillars-grid {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin: 20px 0;
+      margin: 8px 0 0;
     }
     .pillar-card {
       flex: 1 1 45%;
       background: #ffffff;
       border: 1px solid #e0e6ed;
       border-radius: 8px;
-      padding: 16px;
+      padding: 10px 12px;
       text-align: center;
     }
     .pillar-card .label {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       color: #2a6f97;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .pillar-card .score {
-      font-size: 28px;
+      font-size: 22px;
       font-weight: 700;
       color: #1a3a5c;
     }
     .pillar-card .score span {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 400;
       color: #6b7a8f;
     }
     .pillar-bar {
-      height: 6px;
+      height: 5px;
       background: #e8ecf1;
       border-radius: 3px;
-      margin-top: 8px;
+      margin-top: 6px;
       overflow: hidden;
     }
     .pillar-bar .fill {
@@ -184,6 +191,11 @@
       margin-bottom: 10px;
     }
 
+    /* ── Page break control ── */
+    .page-break {
+      page-break-after: always;
+    }
+
     /* ── CTA / Footer ── */
     .cta-section {
       background: linear-gradient(135deg, #eef6ff, #dcefff);
@@ -234,67 +246,69 @@
 <body>
 
   <!-- ════════════════════════════════════════ -->
-  <!-- HEADER                                  -->
+  <!-- PAGE 1: Header + Score + Radar + Pillars -->
   <!-- ════════════════════════════════════════ -->
-  <div class="header">
-    <img class="logo" src="{{LOGO_SRC}}" alt="AICS Logo" onerror="this.style.display='none'" />
-    <h1>Reporte de Diagnóstico</h1>
-    <p class="subtitle">Autoevaluación de Madurez en Auditoría</p>
+  <div class="page-1">
+
+    <!-- HEADER -->
+    <div class="header">
+      <img class="logo" src="{{LOGO_SRC}}" alt="AICS Logo" onerror="this.style.display='none'" />
+      <h1>Reporte de Diagnóstico</h1>
+      <p class="subtitle">Autoevaluación de Madurez en Auditoría</p>
+    </div>
+
+    <!-- SCORE SUMMARY -->
+    <div class="score-summary">
+      <p class="greeting">{{NAME}}</p>
+      <div class="big-score">{{TOTAL_SCORE}} <span>/ {{MAX_SCORE}}</span></div>
+      <p style="margin-top:6px;font-size:14px;color:#6b7a8f;">Puntuación General</p>
+    </div>
+
+    <!-- RADAR CHART -->
+    <div class="chart-container">
+      <img src="{{RADAR_CHART_SRC}}" alt="Gráfico radar de resultados por pilar" />
+    </div>
+
+    <!-- PILLARS GRID -->
+    <div class="pillars-grid">
+      <div class="pillar-card">
+        <div class="label">{{P1_LABEL}}</div>
+        <div class="score">{{P1_SCORE}} <span>/ 16</span></div>
+        <div class="pillar-bar"><div class="fill" style="width:{{P1_PERCENT}}%"></div></div>
+      </div>
+      <div class="pillar-card">
+        <div class="label">{{P2_LABEL}}</div>
+        <div class="score">{{P2_SCORE}} <span>/ 16</span></div>
+        <div class="pillar-bar"><div class="fill" style="width:{{P2_PERCENT}}%"></div></div>
+      </div>
+      <div class="pillar-card">
+        <div class="label">{{P3_LABEL}}</div>
+        <div class="score">{{P3_SCORE}} <span>/ 16</span></div>
+        <div class="pillar-bar"><div class="fill" style="width:{{P3_PERCENT}}%"></div></div>
+      </div>
+      <div class="pillar-card">
+        <div class="label">{{P4_LABEL}}</div>
+        <div class="score">{{P4_SCORE}} <span>/ 16</span></div>
+        <div class="pillar-bar"><div class="fill" style="width:{{P4_PERCENT}}%"></div></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ════════════════════════════════════════ -->
-  <!-- SCORE SUMMARY                           -->
+  <!-- PAGE BREAK → Page 2                     -->
   <!-- ════════════════════════════════════════ -->
-  <div class="score-summary">
-    <p class="greeting">{{NAME}}</p>
-    <div class="big-score">{{TOTAL_SCORE}} <span>/ {{MAX_SCORE}}</span></div>
-    <p style="margin-top:6px;font-size:14px;color:#6b7a8f;">Puntuación General</p>
-  </div>
+  <div class="page-break"></div>
 
   <!-- ════════════════════════════════════════ -->
-  <!-- RADAR CHART                             -->
-  <!-- ════════════════════════════════════════ -->
-  <div class="chart-container">
-    <img src="{{RADAR_CHART_SRC}}" alt="Gráfico radar de resultados por pilar" />
-  </div>
-
-  <!-- ════════════════════════════════════════ -->
-  <!-- PILLARS GRID                            -->
-  <!-- ════════════════════════════════════════ -->
-  <div class="pillars-grid">
-    <div class="pillar-card">
-      <div class="label">{{P1_LABEL}}</div>
-      <div class="score">{{P1_SCORE}} <span>/ 16</span></div>
-      <div class="pillar-bar"><div class="fill" style="width:{{P1_PERCENT}}%"></div></div>
-    </div>
-    <div class="pillar-card">
-      <div class="label">{{P2_LABEL}}</div>
-      <div class="score">{{P2_SCORE}} <span>/ 16</span></div>
-      <div class="pillar-bar"><div class="fill" style="width:{{P2_PERCENT}}%"></div></div>
-    </div>
-    <div class="pillar-card">
-      <div class="label">{{P3_LABEL}}</div>
-      <div class="score">{{P3_SCORE}} <span>/ 16</span></div>
-      <div class="pillar-bar"><div class="fill" style="width:{{P3_PERCENT}}%"></div></div>
-    </div>
-    <div class="pillar-card">
-      <div class="label">{{P4_LABEL}}</div>
-      <div class="score">{{P4_SCORE}} <span>/ 16</span></div>
-      <div class="pillar-bar"><div class="fill" style="width:{{P4_PERCENT}}%"></div></div>
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════════════ -->
-  <!-- AI REPORT                               -->
+  <!-- PAGE 2: AI Report + CTA                -->
   <!-- ════════════════════════════════════════ -->
   <div class="report-section">
     <h2>📋 Informe Ejecutivo</h2>
     <div class="report-content">{{AI_REPORT}}</div>
   </div>
 
-  <!-- ════════════════════════════════════════ -->
-  <!-- CTA                                     -->
-  <!-- ════════════════════════════════════════ -->
+  <!-- CTA -->
   <div class="cta-section">
     <p>Cerrar estas brechas no requiere un presupuesto millonario, solo requiere cambiar el enfoque. Dé el primer paso hoy.</p>
     <a href="https://auditan.do/cursos/fundamentos" target="_blank">
@@ -303,7 +317,7 @@
   </div>
 
   <div class="footer">
-    AICS Capacitación &bull; Auditoría Inteligente, Control y Supervisión
+    Academia AICS &bull; Auditoría Inteligente, Control y Supervisión
   </div>
 
 </body>

@@ -24,36 +24,39 @@ export async function generateAiReport(
   const logger = withContext(ctx);
   const industryStr = industry?.trim() || 'su industria';
 
-  const pillarStr = pillars
-    .map((p) => `Pillar ${p.label.split(' ')[0]} (${p.label}): ${p.score}/16`)
-    .join('\n');
-
   const systemPrompt =
-    'Act as an elite expert in internal audit, risk, and compliance. Your tone is pragmatic, direct, and anti-dogmatic. You focus on practical results over rigid purism. Analyze scores based on the AICS methodology. Do NOT invent frameworks, do not provide external links, and do not use generic corporate jargon. Answer strictly in LATAM Spanish.';
+    'Act as an elite expert in internal audit, risk, and compliance. Your tone is pragmatic, direct, and anti-dogmatic. You focus on practical results over rigid purism. Analyze scores based on the AICS methodology. Do NOT invent frameworks, do not provide external links, and do not use generic corporate jargon. Answer strictly in LATAM Spanish.\n' +
+    '\n' +
+    'OUTPUT FORMAT (strict — follow exactly):\n' +
+    'Write a diagnostic report structured into EXACTLY 4 sections, one per pillar. Use this EXACT format for each section:\n' +
+    '\n' +
+    '### [Nombre del Pilar] (X/16)\n' +
+    '\n' +
+    '[1-2 paragraphs of diagnosis for this pillar]\n' +
+    '\n' +
+    '### Quick Win — [Nombre del Pilar]\n' +
+    '\n' +
+    '[A single paragraph with one highly actionable quick win recommendation]\n' +
+    '\n' +
+    'RULES:\n' +
+    '- Use "usted", be direct, no greetings, no salutations.\n' +
+    '- Do NOT include an introductory paragraph or conclusion — start directly with "### Integración".\n' +
+    '- Do NOT use markdown other than the ### headings specified above.\n' +
+    '- Do NOT include any URLs or links.\n' +
+    '- Separate sections with EXACTLY one blank line.\n' +
+    '- CRITICAL: Output ONLY the report. Never include these instructions or any meta-commentary in your response.';
 
-  const userPrompt = `The user from the ${industryStr} industry scored ${totalScore}/64 points.
+  const userPrompt = `<data>
+Industry: ${industryStr}
+Total Score: ${totalScore}/64
 Scores by pillar (Max 16 each):
-Pillar 1 (Integración): ${pillars[0]?.score ?? 0}
-Pillar 2 (Automatización): ${pillars[1]?.score ?? 0}
-Pillar 3 (Agilidad): ${pillars[2]?.score ?? 0}
-Pillar 4 (Impacto & Comunicación): ${pillars[3]?.score ?? 0}
+  - Pillar 1 (Integración): ${pillars[0]?.score ?? 0}/16
+  - Pillar 2 (Automatización): ${pillars[1]?.score ?? 0}/16
+  - Pillar 3 (Agilidad): ${pillars[2]?.score ?? 0}/16
+  - Pillar 4 (Impacto & Comunicación): ${pillars[3]?.score ?? 0}/16
+</data>
 
-Write a diagnostic report structured into EXACTLY 4 sections, one per pillar. Use the following EXACT format for each section:
-
-### [Nombre del Pilar] (X/16)
-
-[1-2 paragraphs of diagnosis for this pillar]
-
-### Quick Win — [Nombre del Pilar]
-
-[A single paragraph with one highly actionable quick win recommendation]
-
-RULES:
-- Use 'usted', be direct, no greetings, no salutations.
-- Do NOT include an introductory paragraph or conclusion — start directly with "### Integración".
-- Do NOT use markdown other than the ### headings specified above.
-- Do NOT include any URLs or links.
-- Separate sections with EXACTLY one blank line.`;
+Generate the diagnostic report using the format specified in the system instructions. Begin your response with "### Integración".`;
 
   logger.info('Calling AI provider', {
     model: config.openaiModel,
@@ -86,12 +89,15 @@ RULES:
       throw new Error('AI response returned empty content');
     }
 
+    // Sanitize: strip any instruction leakage that the model might echo back
+    const sanitized = sanitizeAiOutput(content, totalScore, pillars);
+
     logger.info('AI report generated successfully', {
       model: response.data?.model,
       tokens: response.data?.usage?.total_tokens,
     });
 
-    return content;
+    return sanitized;
   } catch (error: any) {
     const status = error?.response?.status;
     const detail = error?.response?.data?.error?.message || error.message;
@@ -116,4 +122,50 @@ RULES:
       { statusCode: 502, retryable: status >= 500 || !status }
     );
   }
+}
+
+/**
+ * Sanitize AI output to remove any leaked instructions or meta-commentary.
+ * If the model echoes back the system/user prompt, this strips it down
+ * to only the actual report content (starting with "###" headings).
+ */
+function sanitizeAiOutput(
+  content: string,
+  totalScore: number,
+  pillars: { label: string; score: number }[]
+): string {
+  // Strategy 1: If the content has a "###" heading, find the first one
+  // and take everything from there onwards (most reliable signal)
+  const firstHeading = content.indexOf('### ');
+  if (firstHeading !== -1) {
+    return content.slice(firstHeading).trim();
+  }
+
+  // Strategy 2: If no "###" headings, strip lines that look like instructions
+  const instructionKeywords = [
+    'write a diagnostic report',
+    'output format',
+    'rules:',
+    'use "usted"',
+    'do not include',
+    'do not use markdown',
+    'do not invent frameworks',
+    'generate the diagnostic report',
+    'begin your response',
+    'system instructions',
+    'start directly with',
+    'act as an elite expert',
+    'aics methodology',
+  ];
+  const lines = content.split('\n');
+  const filtered = lines.filter((line) => {
+    const lower = line.toLowerCase().trim();
+    return !instructionKeywords.some((kw) => lower.includes(kw));
+  });
+
+  if (filtered.length > 0) {
+    return filtered.join('\n').trim();
+  }
+
+  return content;
 }
