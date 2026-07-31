@@ -199,17 +199,21 @@ function buildPillarBadge(
 ): string {
   if (!pillars || pillars.length === 0) return '';
 
-  let highestIdx = 0;
-  let lowestIdx = 0;
-  for (let i = 1; i < pillars.length; i++) {
-    if (pillars[i].score > pillars[highestIdx].score) highestIdx = i;
-    if (pillars[i].score < pillars[lowestIdx].score) lowestIdx = i;
-  }
+  // Real max and min across all pillars
+  const scores = pillars.map((p) => p.score);
+  const maxScore = Math.max(...scores);
+  const minScore = Math.min(...scores);
 
-  if (index === highestIdx) {
+  // Total tie exception: if max === min, all pillars scored the same.
+  // Do NOT inject any small badge to avoid visual clutter.
+  if (maxScore === minScore) return '';
+
+  // Multiple assignment: mark EVERY pillar tied at the max as "Fortaleza"
+  // and EVERY pillar tied at the min as "Prioridad Urgente".
+  if (pillars[index].score === maxScore) {
     return '<span class="badge-sm badge-teal">Fortaleza</span>';
   }
-  if (index === lowestIdx) {
+  if (pillars[index].score === minScore) {
     return '<span class="badge-sm badge-red">Prioridad Urgente</span>';
   }
   return '';
