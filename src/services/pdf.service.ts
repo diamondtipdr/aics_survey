@@ -41,6 +41,11 @@ export async function generatePdf(
     .replace(/\{\{TOTAL_SCORE\}\}/g, String(data.totalScore))
     .replace(/\{\{MAX_SCORE\}\}/g, String(data.maxScore))
     .replace(/\{\{SCORE_PERCENT\}\}/g, calcScorePct(data.totalScore, data.maxScore))
+    .replace(/\{\{MATURITY_BADGE_HTML\}\}/g, buildMaturityBadge(data.totalScore))
+    .replace(/\{\{P1_BADGE_HTML\}\}/g, buildPillarBadge(data.pillars, 0))
+    .replace(/\{\{P2_BADGE_HTML\}\}/g, buildPillarBadge(data.pillars, 1))
+    .replace(/\{\{P3_BADGE_HTML\}\}/g, buildPillarBadge(data.pillars, 2))
+    .replace(/\{\{P4_BADGE_HTML\}\}/g, buildPillarBadge(data.pillars, 3))
     .replace(/\{\{P1_SCORE\}\}/g, String(data.pillars[0]?.score ?? 0))
     .replace(/\{\{P1_LABEL\}\}/g, data.pillars[0]?.label ?? '')
     .replace(/\{\{P1_PERCENT\}\}/g, calcPct(data.pillars[0]))
@@ -168,6 +173,46 @@ function calcPct(pillar: { score: number; maxScore: number } | undefined): strin
 function calcScorePct(totalScore: number, maxScore: number): string {
   if (!maxScore) return '0';
   return String(Math.round((totalScore / maxScore) * 100));
+}
+
+/**
+ * Build the general maturity badge HTML based on the total score (over 64).
+ */
+function buildMaturityBadge(totalScore: number): string {
+  if (totalScore <= 32) {
+    return '<span class="badge badge-red">Nivel: Analógico / En Desarrollo</span>';
+  }
+  if (totalScore <= 48) {
+    return '<span class="badge badge-yellow">Nivel: Funcional / En Transición</span>';
+  }
+  return '<span class="badge badge-teal">Nivel: Estratégico / Inteligente</span>';
+}
+
+/**
+ * Build the small badge HTML for a pillar. The pillar with the highest score
+ * gets a "Fortaleza" badge, the one with the lowest score gets a
+ * "Prioridad Urgente" badge. Ties resolve to the first pillar in order.
+ */
+function buildPillarBadge(
+  pillars: { label: string; score: number; maxScore: number }[],
+  index: number
+): string {
+  if (!pillars || pillars.length === 0) return '';
+
+  let highestIdx = 0;
+  let lowestIdx = 0;
+  for (let i = 1; i < pillars.length; i++) {
+    if (pillars[i].score > pillars[highestIdx].score) highestIdx = i;
+    if (pillars[i].score < pillars[lowestIdx].score) lowestIdx = i;
+  }
+
+  if (index === highestIdx) {
+    return '<span class="badge-sm badge-teal">Fortaleza</span>';
+  }
+  if (index === lowestIdx) {
+    return '<span class="badge-sm badge-red">Prioridad Urgente</span>';
+  }
+  return '';
 }
 
 function escapeHtml(text: string): string {

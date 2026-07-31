@@ -115,6 +115,34 @@
       margin-top: 16px;
     }
 
+    /* ESTILOS PARA INSIGNIAS (BADGES) */
+    .badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 15px;
+    }
+    .badge-sm {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    /* Colores de Insignias */
+    .badge-red { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+    .badge-yellow { background-color: #fef9c3; color: #854d0e; border: 1px solid #facc15; }
+    .badge-teal { background-color: #ccfbf1; color: #115e59; border: 1px solid #2dd4bf; }
+
     /* ── Pillars Grid (reemplaza el gráfico de radar) ── */
     /* Diseño 100% HTML/CSS: evita los problemas de renderizado de canvas/Chart.js en el PDF */
     .chart-container {
@@ -317,6 +345,9 @@
         </div>
         <div class="score-label">Puntuación General</div>
       </div>
+
+      <!-- Insignia de nivel de madurez general -->
+      {{MATURITY_BADGE_HTML}}
     </div>
 
     <!-- PILLARS GRID (100% HTML/CSS, sin Chart.js) -->
@@ -324,22 +355,22 @@
       <div class="chart-title">Madurez por Pilar</div>
       <div class="pillars-grid">
         <div class="pillar-card">
-          <div class="label">{{P1_LABEL}}</div>
+          <div class="label">{{P1_LABEL}}{{P1_BADGE_HTML}}</div>
           <div class="score">{{P1_SCORE}} <span>/ 16</span></div>
           <div class="pillar-bar"><div class="fill" style="width:{{P1_PERCENT}}%"></div></div>
         </div>
         <div class="pillar-card">
-          <div class="label">{{P2_LABEL}}</div>
+          <div class="label">{{P2_LABEL}}{{P2_BADGE_HTML}}</div>
           <div class="score">{{P2_SCORE}} <span>/ 16</span></div>
           <div class="pillar-bar"><div class="fill" style="width:{{P2_PERCENT}}%"></div></div>
         </div>
         <div class="pillar-card">
-          <div class="label">{{P3_LABEL}}</div>
+          <div class="label">{{P3_LABEL}}{{P3_BADGE_HTML}}</div>
           <div class="score">{{P3_SCORE}} <span>/ 16</span></div>
           <div class="pillar-bar"><div class="fill" style="width:{{P3_PERCENT}}%"></div></div>
         </div>
         <div class="pillar-card">
-          <div class="label">{{P4_LABEL}}</div>
+          <div class="label">{{P4_LABEL}}{{P4_BADGE_HTML}}</div>
           <div class="score">{{P4_SCORE}} <span>/ 16</span></div>
           <div class="pillar-bar"><div class="fill" style="width:{{P4_PERCENT}}%"></div></div>
         </div>
