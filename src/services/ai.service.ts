@@ -72,7 +72,7 @@ Generate the diagnostic report using the format specified in the system instruct
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        max_tokens: 1500,
+        max_tokens: 2500,
         temperature: 0.2,
       },
       {

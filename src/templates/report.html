@@ -55,21 +55,64 @@
       margin: 12px 0;
       text-align: center;
     }
-    .score-summary .big-score {
-      font-size: 40px;
-      font-weight: 800;
-      color: #1a3a5c;
-      line-height: 1;
-    }
-    .score-summary .big-score span {
-      font-size: 18px;
-      font-weight: 400;
-      color: #6b7a8f;
-    }
     .score-summary .greeting {
       font-size: 14px;
       color: #2a6f97;
       margin-bottom: 4px;
+    }
+
+    /* ── Score Gauge (donut con conic-gradient, 100% CSS, sin JS) ── */
+    .score-gauge-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 14px 0;
+    }
+    .score-gauge {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      /* El valor del porcentaje determina cuánto se llena el anillo */
+      background: conic-gradient(#0d9488 {{SCORE_PERCENT}}%, #e2e8f0 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .score-gauge-inner {
+      width: 140px;
+      height: 140px;
+      background-color: #f8fafc; /* Color de fondo de la tarjeta */
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+    .score-number {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1;
+    }
+    .score-max {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .score-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 16px;
     }
 
     /* ── Pillars Grid (reemplaza el gráfico de radar) ── */
@@ -261,11 +304,19 @@
       <p class="subtitle">Autoevaluación de Madurez en Auditoría</p>
     </div>
 
-    <!-- SCORE SUMMARY -->
+    <!-- SCORE SUMMARY (Gauge circular con conic-gradient) -->
     <div class="score-summary">
       <p class="greeting">{{NAME}}</p>
-      <div class="big-score">{{TOTAL_SCORE}} <span>/ {{MAX_SCORE}}</span></div>
-      <p style="margin-top:6px;font-size:14px;color:#6b7a8f;">Puntuación General</p>
+
+      <div class="score-gauge-container">
+        <div class="score-gauge">
+          <div class="score-gauge-inner">
+            <div class="score-number">{{TOTAL_SCORE}}</div>
+            <div class="score-max">/ {{MAX_SCORE}}</div>
+          </div>
+        </div>
+        <div class="score-label">Puntuación General</div>
+      </div>
     </div>
 
     <!-- PILLARS GRID (100% HTML/CSS, sin Chart.js) -->

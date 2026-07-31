@@ -40,6 +40,7 @@ export async function generatePdf(
     .replace(/\{\{NAME\}\}/g, escapeHtml(data.name))
     .replace(/\{\{TOTAL_SCORE\}\}/g, String(data.totalScore))
     .replace(/\{\{MAX_SCORE\}\}/g, String(data.maxScore))
+    .replace(/\{\{SCORE_PERCENT\}\}/g, calcScorePct(data.totalScore, data.maxScore))
     .replace(/\{\{P1_SCORE\}\}/g, String(data.pillars[0]?.score ?? 0))
     .replace(/\{\{P1_LABEL\}\}/g, data.pillars[0]?.label ?? '')
     .replace(/\{\{P1_PERCENT\}\}/g, calcPct(data.pillars[0]))
@@ -158,6 +159,15 @@ function buildRadarChartUrl(
 function calcPct(pillar: { score: number; maxScore: number } | undefined): string {
   if (!pillar || pillar.maxScore === 0) return '0';
   return String(Math.round((pillar.score / pillar.maxScore) * 100));
+}
+
+/**
+ * Percentage of the overall score (totalScore / maxScore) * 100,
+ * used to fill the conic-gradient gauge in the template.
+ */
+function calcScorePct(totalScore: number, maxScore: number): string {
+  if (!maxScore) return '0';
+  return String(Math.round((totalScore / maxScore) * 100));
 }
 
 function escapeHtml(text: string): string {
