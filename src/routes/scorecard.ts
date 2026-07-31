@@ -4,7 +4,8 @@ import { validatePayload, calculateScores, getPillarMap } from '../utils/validat
 import { generateAiReport } from '../services/ai.service';
 import { generatePdf } from '../services/pdf.service';
 import { insertLeadMySql, appendToGoogleSheet } from '../services/db.service';
-import { sendEmail, buildReportEmailHtml } from '../services/email.service';
+import { sendEmail, buildReportEmailHtml, buildReportEmailText } from '../services/email.service';
+import { provisionMoodleAccount } from '../services/moodle.service';
 import { withContext } from '../utils/logger';
 import type { LogContext, ScorecardResponse, LeadRecord, Answer } from '../types';
 
@@ -133,8 +134,28 @@ router.post('/process', async (req: Request, res: Response) => {
       });
     }
 
+    // ── Step E: Moodle provisioning (create account + enrol in free course) ──
+    // Non-critical — if Moodle is down, we still deliver the report.
+    let moodleProvisioned = false;
+    try {
+      const moodleResult = await provisionMoodleAccount(email, ctx);
+      moodleProvisioned = moodleResult.enrolled;
+      logger.info('Moodle provisioning completed', {
+        email,
+        userId: moodleResult.userId,
+        created: moodleResult.created,
+        enrolled: moodleResult.enrolled,
+      });
+    } catch (moodleErr: any) {
+      logger.error('Moodle provisioning failed — continuing flow', {
+        error: moodleErr.message,
+        statusCode: moodleErr.statusCode,
+      });
+    }
+
     // Build email content
-    const emailHtml = buildReportEmailHtml(userName);
+    const emailHtml = buildReportEmailHtml(userName, email);
+    const emailText = buildReportEmailText(userName, email);
     const pdfFilename = `reporte-aics-${email.replace(/[@.]/g, '-')}.pdf`;
 
     // Send email via Mailgun
@@ -144,12 +165,14 @@ router.post('/process', async (req: Request, res: Response) => {
       emailHtml,
       pdfBuffer,
       pdfFilename,
-      ctx
+      ctx,
+      emailText
     );
 
     logger.info('Full lead capture completed', {
       elapsedMs: Date.now() - startTime,
       email,
+      moodleProvisioned,
     });
 
     const response: ScorecardResponse = {

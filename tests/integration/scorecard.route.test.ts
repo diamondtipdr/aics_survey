@@ -5,17 +5,20 @@ import * as aiService from '../../src/services/ai.service';
 import * as pdfService from '../../src/services/pdf.service';
 import * as dbService from '../../src/services/db.service';
 import * as emailService from '../../src/services/email.service';
+import * as moodleService from '../../src/services/moodle.service';
 
 // Mock all external services
 jest.mock('../../src/services/ai.service');
 jest.mock('../../src/services/pdf.service');
 jest.mock('../../src/services/db.service');
 jest.mock('../../src/services/email.service');
+jest.mock('../../src/services/moodle.service');
 
 const mockedAi = aiService as jest.Mocked<typeof aiService>;
 const mockedPdf = pdfService as jest.Mocked<typeof pdfService>;
 const mockedDb = dbService as jest.Mocked<typeof dbService>;
 const mockedEmail = emailService as jest.Mocked<typeof emailService>;
+const mockedMoodle = moodleService as jest.Mocked<typeof moodleService>;
 
 const aiReportText =
   'Diagnóstico general: nivel intermedio.\n\nEl pilar más débil es Gestión de Riesgos.\n\nQuick Win: implementar registro de riesgos.';
@@ -27,6 +30,14 @@ beforeEach(() => {
   mockedDb.insertLeadMySql.mockResolvedValue(undefined);
   mockedDb.appendToGoogleSheet.mockResolvedValue(undefined);
   mockedEmail.sendEmail.mockResolvedValue(undefined);
+  mockedMoodle.provisionMoodleAccount.mockResolvedValue({
+    userId: 42,
+    username: 'test@example.com',
+    email: 'test@example.com',
+    password: 'Auditan.do2026!',
+    created: true,
+    enrolled: true,
+  });
 });
 
 describe('POST /api/v1/scorecard/process', () => {
@@ -60,10 +71,27 @@ describe('POST /api/v1/scorecard/process', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.message).toContain('correo');
 
-    // Should call PDF, DB, and Email services
+    // Should call PDF, DB, Email, and Moodle services
     expect(mockedPdf.generatePdf).toHaveBeenCalledTimes(1);
     expect(mockedDb.insertLeadMySql).toHaveBeenCalledTimes(1);
     expect(mockedDb.appendToGoogleSheet).toHaveBeenCalledTimes(1);
+    expect(mockedEmail.sendEmail).toHaveBeenCalledTimes(1);
+    expect(mockedMoodle.provisionMoodleAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('should still succeed when Moodle provisioning fails', async () => {
+    mockedMoodle.provisionMoodleAccount.mockRejectedValueOnce(
+      new Error('Moodle is down')
+    );
+
+    const res = await request(app)
+      .post('/api/v1/scorecard/process')
+      .send(fixtures.validFull)
+      .expect(200);
+
+    expect(res.body.mode).toBe('full');
+    expect(res.body.success).toBe(true);
+    // Email should still be sent even if Moodle fails
     expect(mockedEmail.sendEmail).toHaveBeenCalledTimes(1);
   });
 

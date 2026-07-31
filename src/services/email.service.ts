@@ -20,7 +20,8 @@ export async function sendEmail(
   htmlBody: string,
   pdfBuffer: Buffer,
   pdfFilename: string,
-  ctx: LogContext
+  ctx: LogContext,
+  textBody?: string
 ): Promise<void> {
   const logger = withContext(ctx);
 
@@ -34,6 +35,7 @@ export async function sendEmail(
   form.append('to', to);
   form.append('subject', subject);
   form.append('html', htmlBody);
+  if (textBody) form.append('text', textBody);
   form.append('attachment', pdfBuffer, {
     filename: pdfFilename,
     contentType: 'application/pdf',
@@ -78,9 +80,12 @@ export async function sendEmail(
 
 /**
  * Build the professional Spanish email body for the report delivery.
+ * Includes the Moodle academy credentials block for the free course.
  */
-export function buildReportEmailHtml(userName: string): string {
+export function buildReportEmailHtml(userName: string, email: string): string {
   const courseUrl = 'https://auditan.do/cursos/fundamentos';
+  const academyUrl = 'https://academia.auditan.do';
+  const tempPassword = 'Auditan.do2026!';
 
   return `
 <!DOCTYPE html>
@@ -122,6 +127,32 @@ export function buildReportEmailHtml(userName: string): string {
               <p style="color:#555;font-size:15px;line-height:1.6;margin:0 0 20px;">
                 El informe completo está adjunto en este correo en formato PDF.
               </p>
+
+              <!-- Moodle Academy Credentials -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin:25px 0;">
+                <tr>
+                  <td style="padding:25px;">
+                    <h3 style="color:#166534;font-size:17px;margin:0 0 12px;">
+                      🎓 ¡Tienes acceso a nuestro curso introductorio gratuito!
+                    </h3>
+                    <p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 15px;">
+                      Para que puedas implementar tu plan de acción de inmediato, te hemos creado una cuenta en la
+                      <strong>Academia Auditan.do</strong> con acceso al curso
+                      <strong>"Fundamentos de Auditoría Inteligente"</strong>.
+                    </p>
+                    <ul style="color:#555;font-size:14px;line-height:1.8;margin:0 0 15px;padding-left:20px;">
+                      <li><strong>URL de la Academia:</strong> <a href="${academyUrl}" target="_blank" style="color:#166534;">${academyUrl}</a></li>
+                      <li><strong>Tu Usuario:</strong> ${escapeHtml(email)}</li>
+                      <li><strong>Contraseña Temporal:</strong> ${tempPassword}</li>
+                    </ul>
+                    <p style="color:#888;font-size:13px;line-height:1.5;margin:0;font-style:italic;">
+                      Nota: Por seguridad, el sistema te pedirá cambiar esta contraseña al ingresar.
+                      Te recomendamos también ir a "Mi Perfil" para actualizar tu nombre y apellido
+                      correctos para la emisión de tus futuros certificados.
+                    </p>
+                  </td>
+                </tr>
+              </table>
 
               <!-- CTA Card -->
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef6ff;border-radius:8px;border:1px solid #cce5ff;margin:25px 0;">
@@ -173,4 +204,38 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+/**
+ * Build the plain-text version of the report email, including the
+ * Moodle academy credentials block.
+ */
+export function buildReportEmailText(userName: string, email: string): string {
+  const academyUrl = 'https://academia.auditan.do';
+  const tempPassword = 'Auditan.do2026!';
+
+  return `
+Hola ${userName},
+
+Gracias por completar nuestra autoevaluación de madurez en auditoría.
+Hemos preparado un informe ejecutivo personalizado con el análisis de
+sus resultados, incluyendo su puntuación general, el desglose por pilares
+y recomendaciones accionables. El informe completo está adjunto en este
+correo en formato PDF.
+
+¡Tienes acceso a nuestro curso introductorio gratuito!
+Para que puedas implementar tu plan de acción de inmediato, te hemos
+creado una cuenta en la Academia Auditan.do con acceso al curso
+"Fundamentos de Auditoría Inteligente".
+
+- URL de la Academia: ${academyUrl}
+- Tu Usuario: ${email}
+- Contraseña Temporal: ${tempPassword}
+
+Nota: Por seguridad, el sistema te pedirá cambiar esta contraseña al
+ingresar. Te recomendamos también ir a "Mi Perfil" para actualizar tu
+nombre y apellido correctos para la emisión de tus futuros certificados.
+
+Atentamente, el equipo de AICS Capacitación.
+`.trim();
 }

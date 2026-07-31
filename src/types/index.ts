@@ -112,6 +112,9 @@ export interface AppConfig {
   mailgunDomain: string;
   // Moodle
   moodleApiKey: string;
+  moodleUrl: string;
+  moodleToken: string;
+  moodleFreeCourseId: number;
   // Logging
   logLevel: string;
   logToFile: boolean;

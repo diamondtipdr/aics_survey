@@ -1,4 +1,4 @@
-import { sendEmail, buildReportEmailHtml } from '../../src/services/email.service';
+import { sendEmail, buildReportEmailHtml, buildReportEmailText } from '../../src/services/email.service';
 import type { LogContext } from '../../src/types';
 
 jest.mock('axios');
@@ -9,16 +9,38 @@ const testCtx: LogContext = {
 
 describe('buildReportEmailHtml', () => {
   it('should generate valid HTML with the user name', () => {
-    const html = buildReportEmailHtml('María García');
+    const html = buildReportEmailHtml('María García', 'maria@example.com');
     expect(html).toContain('María García');
     expect(html).toContain('Reporte de Diagnóstico AICS');
     expect(html).toContain('Fundamentos de Auditoría Inteligente');
     expect(html).toContain('auditan.do/cursos/fundamentos');
   });
 
-  it('should escape HTML in user names', () => {
-    const html = buildReportEmailHtml('<script>alert("xss")</script>');
+  it('should include the Moodle academy credentials block', () => {
+    const html = buildReportEmailHtml('María García', 'maria@example.com');
+    expect(html).toContain('¡Tienes acceso a nuestro curso introductorio gratuito!');
+    expect(html).toContain('Academia Auditan.do');
+    expect(html).toContain('https://academia.auditan.do');
+    expect(html).toContain('maria@example.com');
+    expect(html).toContain('Auditan.do2026!');
+    expect(html).toContain('cambiar esta contraseña');
+  });
+
+  it('should escape HTML in user names and emails', () => {
+    const html = buildReportEmailHtml('<script>alert("xss")</script>', 'a<b@example.com');
     expect(html).not.toContain('<script>');
+    expect(html).not.toContain('a<b@example.com');
+  });
+});
+
+describe('buildReportEmailText', () => {
+  it('should include the Moodle credentials in plain text', () => {
+    const text = buildReportEmailText('María García', 'maria@example.com');
+    expect(text).toContain('María García');
+    expect(text).toContain('https://academia.auditan.do');
+    expect(text).toContain('maria@example.com');
+    expect(text).toContain('Auditan.do2026!');
+    expect(text).toContain('Fundamentos de Auditoría Inteligente');
   });
 });
 

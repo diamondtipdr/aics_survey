@@ -45,6 +45,9 @@ export const config: AppConfig = {
 
   // Moodle API
   moodleApiKey: getEnv('MOODLE_API_KEY', ''),
+  moodleUrl: getEnv('MOODLE_URL', ''),
+  moodleToken: getEnv('MOODLE_TOKEN', ''),
+  moodleFreeCourseId: parseInt(getEnv('MOODLE_FREE_COURSE_ID', '0'), 10),
 
   // Logging
   logLevel: getEnv('LOG_LEVEL', 'info'),
