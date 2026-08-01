@@ -32,9 +32,9 @@ beforeEach(() => {
   mockedEmail.sendEmail.mockResolvedValue(undefined);
   mockedMoodle.provisionMoodleAccount.mockResolvedValue({
     userId: 42,
-    username: 'test@example.com',
+    username: 'test',
     email: 'test@example.com',
-    password: 'Auditan.do2026!',
+    password: 'TempPass123!',
     created: true,
     enrolled: true,
   });
@@ -93,6 +93,49 @@ describe('POST /api/v1/scorecard/process', () => {
     expect(res.body.success).toBe(true);
     // Email should still be sent even if Moodle fails
     expect(mockedEmail.sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it('should omit credentials from the email when the account already exists', async () => {
+    mockedMoodle.provisionMoodleAccount.mockResolvedValueOnce({
+      userId: 0,
+      username: 'test',
+      email: 'test@example.com',
+      password: '',
+      created: false,
+      enrolled: false,
+    });
+
+    const res = await request(app)
+      .post('/api/v1/scorecard/process')
+      .send(fixtures.validFull)
+      .expect(200);
+
+    expect(res.body.mode).toBe('full');
+    expect(res.body.success).toBe(true);
+
+    // Email should still be sent, but without credentials
+    expect(mockedEmail.sendEmail).toHaveBeenCalledTimes(1);
+    expect(mockedEmail.buildReportEmailHtml).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      undefined
+    );
+  });
+
+  it('should include credentials in the email when a new account is created', async () => {
+    const res = await request(app)
+      .post('/api/v1/scorecard/process')
+      .send(fixtures.validFull)
+      .expect(200);
+
+    expect(res.body.mode).toBe('full');
+    expect(res.body.success).toBe(true);
+
+    expect(mockedEmail.buildReportEmailHtml).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      { username: 'test', password: 'TempPass123!' }
+    );
   });
 
   it('should fallback to "Auditor" when name is missing', async () => {

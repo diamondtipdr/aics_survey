@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { validatePayload, calculateScores, getPillarMap } from '../utils/validation';
+import { validatePayload, calculateScores } from '../utils/validation';
 import { generateAiReport } from '../services/ai.service';
 import { generatePdf } from '../services/pdf.service';
 import { insertLeadMySql, appendToGoogleSheet } from '../services/db.service';
@@ -49,7 +49,6 @@ router.post('/process', async (req: Request, res: Response) => {
     const { answers, name, email, industry, dept_size, country } = validation.data;
 
     // ── Step B: Score Calculation ──
-    const pillarDefs = getPillarMap();
     const scores = calculateScores(answers);
 
     logger.info('Scores calculated', {
@@ -136,16 +135,22 @@ router.post('/process', async (req: Request, res: Response) => {
 
     // ── Step E: Moodle provisioning (create account + enrol in free course) ──
     // Non-critical — if Moodle is down, we still deliver the report.
-    let moodleProvisioned = false;
+    // Credentials are only included in the email when a NEW account was created.
+    let moodleCredentials: { username: string; password: string } | undefined;
     try {
       const moodleResult = await provisionMoodleAccount(email, ctx);
-      moodleProvisioned = moodleResult.enrolled;
       logger.info('Moodle provisioning completed', {
         email,
         userId: moodleResult.userId,
         created: moodleResult.created,
         enrolled: moodleResult.enrolled,
       });
+      if (moodleResult.created && moodleResult.password) {
+        moodleCredentials = {
+          username: moodleResult.username,
+          password: moodleResult.password,
+        };
+      }
     } catch (moodleErr: any) {
       logger.error('Moodle provisioning failed — continuing flow', {
         error: moodleErr.message,
@@ -154,8 +159,8 @@ router.post('/process', async (req: Request, res: Response) => {
     }
 
     // Build email content
-    const emailHtml = buildReportEmailHtml(userName, email);
-    const emailText = buildReportEmailText(userName, email);
+    const emailHtml = buildReportEmailHtml(userName, email, moodleCredentials);
+    const emailText = buildReportEmailText(userName, email, moodleCredentials);
     const pdfFilename = `reporte-aics-${email.replace(/[@.]/g, '-')}.pdf`;
 
     // Send email via Mailgun
@@ -172,7 +177,7 @@ router.post('/process', async (req: Request, res: Response) => {
     logger.info('Full lead capture completed', {
       elapsedMs: Date.now() - startTime,
       email,
-      moodleProvisioned,
+      moodleCredentialsIssued: !!moodleCredentials,
     });
 
     const response: ScorecardResponse = {

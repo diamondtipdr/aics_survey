@@ -3,7 +3,7 @@ import mysql from 'mysql2/promise';
 import { google } from 'googleapis';
 import { config } from '../utils/config';
 import { withContext } from '../utils/logger';
-import type { LeadRecord, LogContext, Answer, MoodleLead, MoodleStats } from '../types';
+import type { LeadRecord, LogContext, MoodleLead, MoodleStats } from '../types';
 
 // ──────────────────────────────────────────────
 // MySQL Connection Pool (singleton)

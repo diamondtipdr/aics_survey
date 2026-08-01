@@ -16,14 +16,26 @@ describe('buildReportEmailHtml', () => {
     expect(html).toContain('auditan.do/cursos/fundamentos');
   });
 
-  it('should include the Moodle academy credentials block', () => {
-    const html = buildReportEmailHtml('María García', 'maria@example.com');
+  it('should include the Moodle academy credentials block when provided', () => {
+    const html = buildReportEmailHtml('María García', 'maria@example.com', {
+      username: 'maria',
+      password: 'TempPass123!',
+    });
     expect(html).toContain('¡Tienes acceso a nuestro curso introductorio gratuito!');
-    expect(html).toContain('Academia Auditan.do');
+    expect(html).toContain('Academia Auditoría Inteligente');
     expect(html).toContain('https://academia.auditan.do');
-    expect(html).toContain('maria@example.com');
-    expect(html).toContain('Auditan.do2026!');
-    expect(html).toContain('cambiar esta contraseña');
+    expect(html).toContain('Su usuario es:');
+    expect(html).toContain('maria');
+    expect(html).toContain('Su contraseña temporal es:');
+    expect(html).toContain('TempPass123!');
+    expect(html).toContain('actualizar su nombre y contraseña por seguridad');
+  });
+
+  it('should omit the credentials block when no credentials are provided', () => {
+    const html = buildReportEmailHtml('María García', 'maria@example.com');
+    expect(html).not.toContain('¡Tienes acceso a nuestro curso introductorio gratuito!');
+    expect(html).not.toContain('Su contraseña temporal es:');
+    expect(html).not.toContain('Academia Auditoría Inteligente');
   });
 
   it('should escape HTML in user names and emails', () => {
@@ -34,13 +46,22 @@ describe('buildReportEmailHtml', () => {
 });
 
 describe('buildReportEmailText', () => {
-  it('should include the Moodle credentials in plain text', () => {
-    const text = buildReportEmailText('María García', 'maria@example.com');
+  it('should include the Moodle credentials in plain text when provided', () => {
+    const text = buildReportEmailText('María García', 'maria@example.com', {
+      username: 'maria',
+      password: 'TempPass123!',
+    });
     expect(text).toContain('María García');
     expect(text).toContain('https://academia.auditan.do');
-    expect(text).toContain('maria@example.com');
-    expect(text).toContain('Auditan.do2026!');
+    expect(text).toContain('Su usuario es: maria');
+    expect(text).toContain('Su contraseña temporal es: TempPass123!');
     expect(text).toContain('Fundamentos de Auditoría Inteligente');
+  });
+
+  it('should omit the credentials block when no credentials are provided', () => {
+    const text = buildReportEmailText('María García', 'maria@example.com');
+    expect(text).not.toContain('Su contraseña temporal es:');
+    expect(text).not.toContain('Academia Auditoría Inteligente');
   });
 });
 

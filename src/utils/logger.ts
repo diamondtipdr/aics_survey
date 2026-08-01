@@ -1,9 +1,6 @@
 import winston from 'winston';
-import path from 'path';
 import { config } from './config';
 import { LogContext } from '../types';
-
-const logDir = path.dirname(config.logFilePath);
 
 const jsonFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),

@@ -3,11 +3,8 @@ import { config } from '../utils/config';
 import { withContext } from '../utils/logger';
 import type { LogContext } from '../types';
 
-/** Default temporary password assigned to new Moodle accounts */
-export const MOODLE_TEMP_PASSWORD = 'Auditan.do2026!';
-
 /** Default lastname until the user updates their profile */
-export const MOODLE_DEFAULT_LASTNAME = 'Auditor (Actualiza tu perfil)';
+export const MOODLE_DEFAULT_LASTNAME = 'Auditor';
 
 /** Standard Moodle role ID for 'Student' */
 const MOODLE_ROLE_STUDENT = 5;
@@ -17,9 +14,64 @@ export interface MoodleProvisionResult {
   userId: number;
   username: string;
   email: string;
+  /** Temporary password — only set when a new account was created */
   password: string;
   created: boolean;
   enrolled: boolean;
+}
+
+/**
+ * Generate a secure random temporary password (12 chars) that satisfies
+ * Moodle's default password policy: at least one lowercase, one uppercase,
+ * one digit and one non-alphanumeric symbol.
+ */
+export function generateSecurePassword(length = 12): string {
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const symbols = '!@#$%^&*()-_=+';
+
+  const all = lower + upper + digits + symbols;
+  const randomChar = (pool: string): string =>
+    pool[Math.floor(Math.random() * pool.length)];
+
+  // Guarantee at least one of each required class, then fill the rest.
+  const chars = [
+    randomChar(lower),
+    randomChar(upper),
+    randomChar(digits),
+    randomChar(symbols),
+  ];
+
+  while (chars.length < length) {
+    chars.push(randomChar(all));
+  }
+
+  // Shuffle so the guaranteed characters are not always at the start.
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [chars[i], chars[j]] = [chars[j]!, chars[i]!];
+  }
+
+  return chars.join('');
+}
+
+/**
+ * Derive a Moodle username from an email address: the local part (before
+ * `@`) lowercased. "Chris.Vargas@Example.com" -> "chris.vargas".
+ */
+export function deriveUsername(email: string): string {
+  return (email.split('@')[0] ?? '').toLowerCase();
+}
+
+/**
+ * Derive a Moodle firstname from an email address: the local part with the
+ * first letter capitalized. "chris.vargas@example.com" -> "Chris.vargas".
+ */
+export function deriveFirstname(email: string): string {
+  const local = email.split('@')[0] ?? '';
+  if (!local) return 'Prospecto';
+  return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
 /** Moodle REST API error payload */
@@ -56,16 +108,6 @@ function buildMoodleUrl(wsfunction: string, params: Record<string, unknown>): st
     append(key, value);
   }
   return url.toString();
-}
-
-/**
- * Derive a Moodle firstname from an email address.
- * "chris.vargas@example.com" -> "Chris.vargas"
- */
-export function deriveFirstname(email: string): string {
-  const local = email.split('@')[0] ?? '';
-  if (!local) return 'Prospecto';
-  return local.charAt(0).toUpperCase() + local.slice(1);
 }
 
 /**
@@ -133,36 +175,16 @@ async function callMoodle(
 }
 
 /**
- * Look up an existing Moodle user by email.
- * Returns the user id, or null if not found.
- */
-async function findUserByEmail(
-  email: string,
-  ctx: LogContext
-): Promise<number | null> {
-  const data = await callMoodle(
-    'core_user_get_users_by_field',
-    { field: 'email', values: [email] },
-    ctx
-  );
-
-  if (Array.isArray(data) && data.length > 0) {
-    const user = data[0] as { id?: number };
-    return typeof user.id === 'number' ? user.id : null;
-  }
-  return null;
-}
-
-/**
  * Create a Moodle user via `core_user_create_users`.
- * Returns the new user id.
+ * Returns the new user id and the temporary password assigned.
  */
 async function createUser(
   email: string,
   ctx: LogContext
-): Promise<number> {
-  const username = email.toLowerCase();
+): Promise<{ id: number; password: string }> {
+  const username = deriveUsername(email);
   const firstname = deriveFirstname(email);
+  const password = generateSecurePassword();
 
   const data = await callMoodle(
     'core_user_create_users',
@@ -173,7 +195,7 @@ async function createUser(
           email,
           firstname,
           lastname: MOODLE_DEFAULT_LASTNAME,
-          password: MOODLE_TEMP_PASSWORD,
+          password,
           preferences: [
             { type: 'auth_forcepasswordchange', value: '1' },
           ],
@@ -185,7 +207,7 @@ async function createUser(
 
   if (Array.isArray(data) && data.length > 0) {
     const created = data[0] as { id?: number };
-    if (typeof created.id === 'number') return created.id;
+    if (typeof created.id === 'number') return { id: created.id, password };
   }
 
   throw Object.assign(
@@ -220,12 +242,16 @@ async function enrolUser(
  * Provision a Moodle account for a prospect and enrol them in the free course.
  *
  * Flow:
- *  1. Try to create the user (`core_user_create_users`).
- *  2. If the user already exists (Moodle error), look it up with
- *     `core_user_get_users_by_field` and reuse its id.
- *  3. Enrol the user in the free course (`enrol_manual_enrol_users`).
+ *  1. Try to create the user (`core_user_create_users`) with a generated
+ *     temporary password.
+ *  2. If the user already exists (Moodle error), capture the exception
+ *     silently and skip account creation — no new credentials are issued.
+ *  3. Enrol the newly created user in the free course
+ *     (`enrol_manual_enrol_users`).
  *
- * Returns the user id, credentials and provisioning flags.
+ * Returns the user id, credentials and provisioning flags. When the account
+ * already existed, `created` is `false` and `password` is empty so the email
+ * can omit the credentials block.
  */
 export async function provisionMoodleAccount(
   email: string,
@@ -237,23 +263,27 @@ export async function provisionMoodleAccount(
     logger.warn('Moodle not configured — skipping account provisioning');
     return {
       userId: 0,
-      username: email.toLowerCase(),
+      username: deriveUsername(email),
       email,
-      password: MOODLE_TEMP_PASSWORD,
+      password: '',
       created: false,
       enrolled: false,
     };
   }
 
   let userId: number;
+  let password = '';
   let created = false;
 
   try {
-    userId = await createUser(email, ctx);
+    const createdUser = await createUser(email, ctx);
+    userId = createdUser.id;
+    password = createdUser.password;
     created = true;
     logger.info('Moodle user created', { email, userId });
   } catch (error: any) {
-    // If the user already exists, Moodle throws an error — look it up instead.
+    // If the user already exists, Moodle throws an error — capture it
+    // silently and skip account creation (no new credentials).
     const moodleErr = error?.moodleError;
     const isDuplicate =
       moodleErr?.errorcode === 'invalidrecord' ||
@@ -261,15 +291,15 @@ export async function provisionMoodleAccount(
 
     if (!isDuplicate) throw error;
 
-    logger.info('Moodle user already exists — looking up existing id', { email });
-    const existingId = await findUserByEmail(email, ctx);
-    if (!existingId) {
-      throw Object.assign(
-        new Error(`Moodle user lookup failed for existing email: ${email}`),
-        { statusCode: 502, retryable: false }
-      );
-    }
-    userId = existingId;
+    logger.info('Moodle user already exists — skipping account creation', { email });
+    return {
+      userId: 0,
+      username: deriveUsername(email),
+      email,
+      password: '',
+      created: false,
+      enrolled: false,
+    };
   }
 
   await enrolUser(userId, ctx);
@@ -281,9 +311,9 @@ export async function provisionMoodleAccount(
 
   return {
     userId,
-    username: email.toLowerCase(),
+    username: deriveUsername(email),
     email,
-    password: MOODLE_TEMP_PASSWORD,
+    password,
     created,
     enrolled: true,
   };

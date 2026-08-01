@@ -3,8 +3,6 @@ import { config } from '../utils/config';
 import { withContext } from '../utils/logger';
 import type { LogContext } from '../types';
 
-const log = withContext({ requestId: 'system', component: 'AiService' });
-
 /**
  * Generate an executive report in Spanish using an OpenAI-compatible API.
  *
@@ -90,7 +88,7 @@ Generate the diagnostic report using the format specified in the system instruct
     }
 
     // Sanitize: strip any instruction leakage that the model might echo back
-    const sanitized = sanitizeAiOutput(content, totalScore, pillars);
+    const sanitized = sanitizeAiOutput(content);
 
     logger.info('AI report generated successfully', {
       model: response.data?.model,
@@ -129,11 +127,7 @@ Generate the diagnostic report using the format specified in the system instruct
  * If the model echoes back the system/user prompt, this strips it down
  * to only the actual report content (starting with "###" headings).
  */
-function sanitizeAiOutput(
-  content: string,
-  totalScore: number,
-  pillars: { label: string; score: number }[]
-): string {
+function sanitizeAiOutput(content: string): string {
   // Strategy 1: If the content has a "###" heading, find the first one
   // and take everything from there onwards (most reliable signal)
   const firstHeading = content.indexOf('### ');
